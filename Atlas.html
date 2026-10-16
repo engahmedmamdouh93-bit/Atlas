@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="atlas-version" content="20">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-52 -52 104 104'%3E%3Crect x='-52' y='-52' width='104' height='104' rx='22' fill='%230B0A1A' stroke='%232A2550' stroke-width='1'/%3E%3Cpath d='M-28 30 L0 -32 L28 30' fill='none' stroke='%23A78BFA' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-15 12 l5 -9 l5 18 l5 -18 l5 18 l5 -18 l5 9' fill='none' stroke='%23FFB25B' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atlas — Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B0A1A;--cardrgb:22,19,45;--card:rgba(22,19,45,.55);--blur:12px;--inner:#1D1940;--bd:#2A2550;--bd2:#3A3470;--ac:#6D4AFF;--acl:#A78BFA;--acl2:#B9A6FF;--tx:#EDEBFA;--tx2:#D9D4F5;--mu:#A9A3C9;--mu2:#8F89B3;--track:#262145;--pop:#110E26;--pill:#3B2C8F;--orange:#FFB25B;--green:#3DD68C;--blue:#4F8BFF;--pink:#F0508C;--red:#FF9C8C;--white:#fff;--barrgb:12,11,22;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="light"]{--bg:#EFEBFF;--cardrgb:255,255,255;--inner:#F1EEFF;--bd:#D9D3F5;--bd2:#C6BEEF;--tx:#1A1633;--tx2:#2C2650;--mu:#5B5680;--mu2:#7A74A0;--track:#E2DDF7;--pop:#fff;--pill:#E4DCFF;--white:#1A1633;--barrgb:255,255,255;color-scheme:light}
+@media (prefers-color-scheme: light){:root:not([data-theme]){--bg:#0B0A1A}}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth;height:100%}
+*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--tx);font:15px/1.5 Manrope,'Segoe UI',system-ui,sans-serif}
+button,input,select,textarea{font-family:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--acl2)}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+#bg svg{position:absolute;inset:0;width:100%;height:100%}
+#app{position:relative;z-index:1;min-height:100vh;padding:24px 24px 120px;display:flex;gap:24px;align-items:flex-start}
+nav{position:sticky;top:24px;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 12px;background:var(--card);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border:1px solid var(--bd);border-radius:24px}
+nav .nb{width:56px;height:56px;border-radius:16px;border:0;background:transparent;color:var(--mu);display:flex;align-items:center;justify-content:center}
+nav .nb.on{background:var(--ac);color:#fff}
+nav .nb:hover:not(.on){background:var(--inner)}
+nav .sp{height:90px}
+main{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:20px;max-width:1280px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;padding:8px 8px 4px}
+h1{margin:0;font:500 clamp(30px,5vw,46px)/1.1 Outfit,sans-serif;color:var(--white)}
+h1 span{color:var(--acl)}
+.tag{margin:10px 0 0;font-size:17px;color:var(--mu)}
+.clock{text-align:right}
+.clock .t{font:300 clamp(48px,8vw,84px)/1 Outfit,sans-serif;color:var(--white);letter-spacing:-1px}
+.clock .t small{font:500 22px Outfit,sans-serif;color:var(--acl);margin-left:8px}
+.clock .d{margin-top:8px;font-size:17px;color:var(--mu)}
+.row{display:flex;flex-wrap:wrap;gap:20px}
+section.c{min-width:0;padding:22px;background:var(--card);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border:1px solid var(--bd);border-radius:22px;position:relative}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+h2{margin:0;font-size:18px;font-weight:600}
+.hint{font-size:12px;color:var(--mu)}
+.btn{height:34px;padding:0 12px;border-radius:10px;border:1px solid var(--bd2);background:var(--inner);font-size:13px;font-weight:600}
+.btn.pri{background:var(--ac);border-color:var(--ac);color:#fff}
+.btn.dng{color:var(--red)}
+.btn:disabled{opacity:.5;cursor:default}
+.ib{width:30px;height:30px;border-radius:8px;border:0;background:transparent;color:var(--mu);font-size:18px;line-height:1;padding:0;flex:0 0 auto}
+.ib:hover{background:var(--inner)}
+.menu{position:absolute;right:0;top:34px;z-index:15;min-width:220px;padding:6px;background:var(--pop);border:1px solid var(--bd2);border-radius:12px;display:flex;flex-direction:column;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.menu button{text-align:left;padding:10px 12px;border:0;background:transparent;font-size:14px;border-radius:8px}
+.menu button:hover{background:var(--inner)}
+.menu .q{padding:8px 10px;font-size:13px;line-height:1.4;color:var(--tx2)}
+.menu .yn{display:flex;gap:8px;padding:4px 8px 8px}
+.rel{position:relative}
+.pill{font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;white-space:nowrap;border:1px solid}
+.empty{padding:14px;border:1px dashed var(--bd2);border-radius:14px;color:var(--mu);font-size:13.5px}
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center;font-size:12px}
+.cal .w{padding:4px 0;color:var(--mu);font-weight:600}
+.cal .x{height:28px;display:flex;align-items:center;justify-content:center;border-radius:14px;position:relative;color:var(--tx2)}
+.cal .x.o{color:var(--mu2);opacity:.6}
+.cal .x.t{background:var(--ac);color:#fff;font-weight:700}
+.cal button.x{border:0;font:inherit;font-size:12px;cursor:pointer;padding:0;background:transparent}
+.cal button.x:hover{background:var(--inner)}
+.cal button.x.t,.cal button.x.t:hover{background:var(--ac)}
+.cal .x i{position:absolute;bottom:1px;width:4px;height:4px;border-radius:2px;background:var(--orange)}
+.cn{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cn button{width:32px;height:32px;border:0;background:transparent;color:var(--mu);border-radius:8px;font-size:18px}
+/* schedule */
+.ev{display:flex;gap:14px;align-items:center;padding:12px 14px;background:var(--inner);border-radius:14px;margin-bottom:10px}
+.ev .tm{font-size:13px;line-height:1.5;color:var(--tx2);min-width:52px}
+.ev .tt{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.ev .tt i{width:7px;height:7px;border-radius:4px;flex:0 0 auto}
+.ev .st{font-size:13px;color:var(--mu);margin-top:2px}
+/* goals */
+.g{position:relative;margin-bottom:14px}
+.g .l{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px;margin-bottom:6px}
+.g .l b{flex:1 1 auto;min-width:0;font-weight:600}
+.bar{height:8px;border-radius:4px;background:var(--track);overflow:hidden}
+.bar div{height:8px;border-radius:4px}
+/* habits */
+.hg{display:grid;grid-template-columns:minmax(110px,1.4fr) repeat(7,minmax(28px,1fr));gap:8px 6px;align-items:center}
+.hg .dn{text-align:center;font-size:12px;font-weight:600;color:var(--mu)}
+.hg .dn.today{color:var(--acl)}
+.hg .nm{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;position:relative;min-width:0}
+.hg .nm span.n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hg .nm i{width:8px;height:8px;border-radius:4px;flex:0 0 auto}
+.hb{height:30px;border-radius:9px;border:1px solid var(--bd2);background:transparent;padding:0}
+.hb.on{border-color:transparent}
+.note{margin-top:12px;font-size:12.5px;color:var(--mu);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+/* tasks */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.tabs button{height:36px;padding:0 14px;border-radius:10px;font-size:14px;background:transparent;color:var(--mu);border:1px solid transparent}
+.tabs button.on{background:var(--pill);color:var(--white);border-color:var(--ac)}
+.tk{display:flex;align-items:center;gap:14px;padding:12px 4px;border-bottom:1px solid var(--track)}
+.tk .ck{width:26px;height:26px;flex:0 0 auto;border-radius:13px;border:2px solid var(--mu2);background:transparent;display:flex;align-items:center;justify-content:center;padding:0;color:#fff}
+.tk .ck.on{background:var(--ac);border-color:var(--ac)}
+.tk .bd{flex:1;min-width:0;text-align:left;border:0;background:transparent;padding:0}
+.tk .ti{font-size:15px}
+.tk .ti.dn{color:var(--mu2);text-decoration:line-through}
+.tk .pj{font-size:12.5px;color:var(--mu)}
+.tk .wh{font-size:13px;white-space:nowrap;min-width:64px;text-align:right;color:var(--mu)}
+.tk .wh.od{color:var(--orange)}
+/* timer */
+.tm2{position:relative;width:220px;height:220px;margin:6px auto 0;max-width:100%}
+.tm2 svg{width:100%;height:100%}
+.tm2 .in{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.tm2 .in button{background:transparent;border:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:20px;border-radius:50%}
+#tmTxt{font:300 48px/1 Outfit,sans-serif;color:var(--white)}
+#tmLbl{font-size:12px;color:var(--mu);max-width:110px}
+/* lists */
+.li{display:flex;align-items:center;gap:12px;padding:12px;background:var(--inner);border-radius:14px;margin-bottom:10px;width:100%;text-align:left;border:0;position:relative}
+.li .av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:0 0 auto}
+.li .tx{flex:1;min-width:0}
+.li .tx b{display:block;font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .tx small{color:var(--mu);font-size:12.5px}
+/* chat */
+#dim{position:fixed;inset:0;z-index:30;border:0;padding:0}
+#bar{position:fixed;left:50%;transform:translateX(-50%);z-index:41;width:min(720px,calc(100% - 32px));height:54px;padding:0 8px;display:flex;align-items:center;gap:8px;border-radius:27px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid #4A3F8C;box-shadow:-50px 0 70px -24px rgba(255,120,60,.55),50px 0 70px -24px rgba(80,120,255,.55),0 10px 30px rgba(0,0,0,.4);bottom:calc(20px + env(safe-area-inset-bottom,0px));transition:bottom .15s}
+#bar:not(.open){box-shadow:none;border-color:rgba(74,63,140,.3);backdrop-filter:none;-webkit-backdrop-filter:none}
+#bar.open{bottom:calc(132px + env(safe-area-inset-bottom,0px))}
+#bar input{flex:1;min-width:0;height:40px;background:transparent;border:0;outline:0;font-size:15px;color:var(--tx)}
+#bar .bb{height:36px;border-radius:18px;border:1px solid #3A3470;background:rgba(255,255,255,.04);padding:0 12px;font-size:13px;display:flex;align-items:center;gap:6px;color:var(--tx)}
+#bar .bb.sq{width:36px;padding:0;justify-content:center;font-size:18px}
+#bar .send{width:42px;height:36px;border-radius:18px;border:0;background:linear-gradient(135deg,#FF8A4C,#6D4AFF 60%,#4F8BFF);color:#fff;display:flex;align-items:center;justify-content:center}
+.dot{width:8px;height:8px;border-radius:4px;display:inline-block}
+#tm{position:absolute;bottom:60px;left:44px;min-width:230px;padding:6px;background:var(--pop);border:1px solid var(--bd2);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.4)}
+#tm button{display:flex;width:100%;align-items:center;gap:10px;text-align:left;padding:9px 10px;border:0;background:transparent;font-size:14px;border-radius:8px}
+#tm button:hover{background:var(--inner)}
+#tm small{margin-left:auto;color:var(--mu);font-size:12px}
+#pop{position:fixed;left:50%;transform:translateX(-50%);z-index:40;width:min(720px,calc(100% - 32px));bottom:calc(196px + env(safe-area-inset-bottom,0px));max-height:min(56vh,560px);overflow:auto;padding:16px;background:rgba(14,12,30,.94);border:1px solid #3A3180;border-radius:22px;box-shadow:0 20px 50px rgba(0,0,0,.5);color:#EDEBFA}
+#pop .ph{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:10px;color:#A9A3C9}
+#pop .ph b{color:#EDEBFA;font-size:14px}
+.m{display:flex;margin-bottom:8px}
+.m.me{justify-content:flex-end}
+.m div{max-width:85%;padding:10px 14px;border-radius:16px;font-size:14.5px;background:#1D1940}
+.m.me div{background:#3B2C8F}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chips button{height:30px;padding:0 12px;border-radius:15px;border:1px solid #6D4AFF;background:transparent;color:#EDEBFA;font-size:13px}
+#rc{position:fixed;left:50%;transform:translateX(-50%);z-index:41;width:min(720px,calc(100% - 32px));bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#rc .l{font-size:11px;font-weight:700;letter-spacing:1px;color:#B9A6FF}
+#rc button.r{flex:1 1 160px;min-width:0;text-align:left;padding:8px 12px;border-radius:14px;border:1px solid #3A3180;background:rgba(14,12,30,.88);color:#EDEBFA}
+#rc button.r b{display:block;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rc button.r small{color:#A9A3C9;font-size:11.5px}
+/* panels */
+.panel{position:fixed;z-index:60;top:calc(24px + env(safe-area-inset-top,0px));right:24px;width:min(420px,calc(100% - 32px));max-height:calc(100vh - 48px);overflow:auto;padding:22px;background:var(--pop);border:1px solid var(--bd2);border-radius:22px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.panel h3{margin:18px 0 8px;font-size:11.5px;font-weight:700;letter-spacing:1px;color:var(--acl2)}
+.fld{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;font-size:13px;color:var(--mu)}
+.fld input,.fld select,.fld textarea{background:var(--inner);border:1px solid var(--bd);border-radius:10px;padding:9px 11px;font-size:14px;color:var(--tx);min-width:0}
+.fld textarea{min-height:70px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opts button{padding:8px 12px;border-radius:12px;border:1px solid var(--bd2);background:transparent;font-size:13px}
+.opts button.on{background:var(--pill);border-color:var(--ac);color:var(--white)}
+.sw{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;font-size:14px}
+.sw small{display:block;color:var(--mu);font-size:12px}
+.sw button{width:44px;height:26px;border-radius:13px;border:0;background:var(--track);position:relative;flex:0 0 auto}
+.sw button i{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:10px;background:#fff;transition:left .15s}
+.sw button.on{background:var(--ac)}.sw button.on i{left:21px}
+.sw button:disabled{opacity:.5}
+.rg label{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px}
+.rg input[type=range]{width:100%;accent-color:var(--ac)}
+#ov{position:fixed;inset:0;z-index:55;background:rgba(6,5,16,.55);backdrop-filter:blur(3px)}
+.modal{position:fixed;z-index:60;left:50%;top:calc(50% + env(safe-area-inset-top,0px)/2);transform:translate(-50%,-50%);width:min(520px,calc(100% - 32px));max-height:calc(100vh - 48px);overflow:auto;padding:22px;background:var(--pop);border:1px solid var(--bd2);border-radius:22px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#toast{position:fixed;z-index:80;top:calc(20px + env(safe-area-inset-top,0px));right:20px;max-width:min(380px,calc(100% - 40px));display:flex;gap:12px;align-items:flex-start;padding:14px 16px;background:var(--pop);border:1px solid var(--ac);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+#toast b{display:block;font-size:13px;color:var(--acl2)}
+#toast span{font-size:14px}
+body.widget #app{display:block;padding:10px;min-height:100vh}
+body.widget nav,body.widget #bar,body.widget #chatlayer,body.widget #bg{display:none!important}
+body.widget main{max-width:none;gap:10px}
+body.widget [data-a="add"]{display:none}
+.wbar{display:flex;align-items:center;gap:8px;padding:2px 4px 8px}
+.wbar b{flex:1;font-size:15px}
+@media (max-width:760px){#app{flex-direction:column;padding:12px 12px 130px;gap:14px}nav{position:static;flex-direction:row;flex-wrap:wrap;justify-content:center;width:100%;padding:8px;gap:4px}nav .nb{width:44px;height:44px}nav .sp{display:none}section.c{padding:16px}.clock{text-align:left}.panel{right:16px}}
+</style>
+</head>
+<body>
+<div id="bg" aria-hidden="true"></div>
+<div id="app">
+<nav aria-label="Main" id="nav"></nav>
+<main id="main"></main>
+</div>
+<div id="chatlayer"></div>
+<div id="bar" role="search">
+  <span style="position:relative"><button class="bb" id="typeBtn" aria-haspopup="true" aria-expanded="false" data-a="typemenu"></button></span>
+ <input id="msg" type="text" placeholder="Ask Atlas anything…" aria-label="Message Atlas" autocomplete="off">
+ <button class="bb" aria-label="Voice (later)" title="Voice comes later" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Voice</button>
+ <button class="send" aria-label="Send to Atlas" data-a="send"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-2-6z"/></svg></button>
+</div>
+<div id="panels"></div>
+<div id="toastbox"></div>
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const RZ='Asia/Riyadh';
+const W=/^\/widget\//.test(location.pathname)?location.pathname.split('/')[2]:'';
+const WT={tasks:'Tasks',today:'Today',habits:'Habits',timer:'Timer'};
+const uid=()=>'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function rp(ms){const p={};new Intl.DateTimeFormat('en-CA',{timeZone:RZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms||Date.now())).forEach(x=>{p[x.type]=x.value});return p}
+const todayStr=()=>{const p=rp();return p.year+'-'+p.month+'-'+p.day};
+function fmtDate(d){if(!d)return '';const a=d.slice(0,10).split('-').map(Number);const cy=+rp().year;return new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric',year:a[0]!==cy?'numeric':undefined}).format(new Date(Date.UTC(a[0],a[1]-1,a[2])))}
+const timeOf=d=>d&&d.length>10?d.slice(11,16):'';
+const PRIO={UI:{l:'Urgent · Important',c:'#FF8A7A'},NUI:{l:'Important',c:'#B9A6FF'},UN:{l:'Urgent',c:'#FFB25B'},NN:{l:'Low',c:'#8F89B3'}};
+const TYPES=[{l:'Auto',c:'#A9A3C9',h:'Atlas decides'},{l:'Task',c:'#8B6CFF',h:''},{l:'Idea',c:'#F2A65A',h:'Pump your mind'},{l:'Goal',c:'#3DD68C',h:''},{l:'Project',c:'#4F8BFF',h:''},{l:'Follow-up',c:'#F0508C',h:''},{l:'Note',c:'#C9C3EA',h:''},{l:'Habit',c:'#FFB25B',h:''}];
+const tcol=t=>(TYPES.find(x=>x.l===t)||TYPES[0]).c;
+const COLL={Task:'tasks',Goal:'goals',Project:'projects',Idea:'ideas','Follow-up':'followups',Note:'notes',Habit:'habits'};
+const TYPEOF={tasks:'Task',goals:'Goal',projects:'Project',ideas:'Idea',followups:'Follow-up',notes:'Note',habits:'Habit'};
+const titleOf=(c,i)=>(c==='projects'||c==='followups'||c==='habits')?i.name:i.title;
+const titleKey=c=>(c==='projects'||c==='followups'||c==='habits')?'name':'title';
+
+/* ---------- state ---------- */
+function seed(){const t=Date.now();let n=0;const mk=o=>Object.assign({id:uid(),created:t-(n++)*60000,updated:t-n*60000},o);
+return{v:1,
+tasks:[{title:'Proptex: build the target developer list',project:'Proptex Sales',priority:'NUI',status:'Inbox'},{title:'StudioOs: set up the accounting part',project:'StudioOs',priority:'NUI',status:'Inbox'},{title:'Review the quotation',project:'',priority:'UI',status:'Inbox'},{title:'Shortlist MBA institutes',project:'',priority:'NN',status:'Inbox'},{title:'Atlas app: approve the design',project:'Atlas App',priority:'UN',status:'Done'}].map(x=>mk(Object.assign({due:'',postponed:0,notes:''},x))),
+goals:[{title:'PPP learning',color:'#3DD68C'},{title:'Real Estate Development — modeling & market analysis',color:'#B9A6FF'},{title:'AI Learning',color:'#4F8BFF'}].map(x=>mk(Object.assign({area:'',deadline:'2027-04-02',status:'Active',progress:null,notes:''},x))),
+projects:[{name:'Proptex Sales',nextAction:'Build target list',color:'#6D4AFF',status:'On'},{name:'Atlas App',nextAction:'Approve home design',color:'#2F6BE0',status:'On'},{name:'StudioOs',nextAction:'Accounting setup',color:'#C4741A',status:'On'},{name:'Lodestar — feasibility arm',nextAction:'',color:'#4B4580',status:'Off',nd:true}].map(x=>mk(Object.assign({objective:'',deadline:'',notes:''},x))),
+habits:[{name:'Workout',color:'#FFB25B'},{name:'Quran',color:'#3DD68C'},{name:'Language',color:'#4F8BFF'}].map(x=>mk(Object.assign({days:{}},x))),
+ideas:[],notes:[],followups:[],chats:[],
+settings:{bg:'mountains',transp:45,blur:12,chatTransp:30,theme:'dark',notif:{desktop:true,sound:true,gcal:false,lead:15},habitsConfirmed:false}};}
+let S=null;
+const U={tab:'All',menu:null,confirm:false,chatOpen:false,typeMenu:false,type:'Auto',chat:null,settings:false,modal:null,mo:0,tm:{rem:1500,running:false},lastDay:'',importPending:null,bgUrl:null};
+let ready=false,saveT=null,mirrorT=null;
+function load(){try{const s=localStorage.getItem('atlas_v1');if(s){const o=JSON.parse(s);if(o&&o.tasks)return o}}catch(_){}return null}
+function save(){if(!ready)return;clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem('atlas_v1',JSON.stringify(S))}catch(_){}mirror()},250)}
+async function dbDoc(){try{if(!window.claude||!claude.use)return null;const db=await claude.use('db'),user=await claude.use('user');if(!db||!user)return null;return db.collection('data/users/'+await user.id()).doc('atlas')}catch(_){return null}}
+function mirror(){clearTimeout(mirrorT);mirrorT=setTimeout(async()=>{try{const d=await dbDoc();if(d)await d.set({json:JSON.stringify(S),at:Date.now()})}catch(_){}},3000)}
+function touch(i){i.updated=Date.now()}
+const find=(c,id)=>S[c].find(x=>x.id===id);
+
+/* ---------- idb for photo ---------- */
+function idb(mode,val){return new Promise((res,rej)=>{try{const q=indexedDB.open('atlas_app',1);q.onupgradeneeded=()=>q.result.createObjectStore('k');q.onerror=()=>rej(q.error);q.onsuccess=()=>{const d=q.result,tx=d.transaction('k',mode==='w'?'readwrite':'readonly'),st=tx.objectStore('k'),r=mode==='w'?st.put(val,'bgphoto'):st.get('bgphoto');tx.oncomplete=()=>{d.close();res(r.result)};tx.onerror=()=>rej(tx.error)}}catch(e){rej(e)}})}
+
+/* ---------- sound / toast ---------- */
+let AC=null;
+function beep(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=880;g.gain.setValueAtTime(.001,AC.currentTime);g.gain.exponentialRampToValueAtTime(.25,AC.currentTime+.02);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.5);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.55)}catch(_){}}
+let toastT=null;
+function toast(msg,title,sound){const b=$('#toastbox');b.innerHTML='<div id="toast" role="status"><b>'+esc(title||'Atlas')+'</b><span>'+esc(msg)+'</span><button class="ib" aria-label="Dismiss" data-a="toastx">✕</button></div>';clearTimeout(toastT);toastT=setTimeout(()=>{b.innerHTML=''},9000);if(sound&&S.settings.notif.sound)beep();
+ if(sound&&S.settings.notif.desktop&&'Notification' in window&&Notification.permission==='granted'){try{new Notification(title||'Atlas',{body:msg})}catch(_){}}}
+
+/* ---------- derived ---------- */
+const isOpen=t=>t.status!=='Done'&&t.status!=='Cancelled';
+function whenLabel(t){if(!t.due)return{s:'No date',od:false};const d=t.due.slice(0,10),td=todayStr();const tm=timeOf(t.due);if(d<td)return{s:'Overdue · '+fmtDate(d),od:true};return{s:(d===td?'Today':fmtDate(d))+(tm?' '+tm:''),od:false}}
+function visibleTasks(){const td=todayStr();let a=S.tasks.filter(t=>t.status!=='Cancelled');
+ if(U.tab==='Today')a=a.filter(t=>isOpen(t)&&t.due&&t.due.slice(0,10)<=td);else if(U.tab==='Next')a=a.filter(t=>t.status==='Next');else if(U.tab==='Inbox')a=a.filter(t=>t.status==='Inbox');else if(U.tab==='Done')a=a.filter(t=>t.status==='Done');
+ return a.sort((x,y)=>(isOpen(y)-isOpen(x))||((x.due||'9999')<(y.due||'9999')?-1:1)||(y.created-x.created))}
+function captures(){const all=[];['tasks','goals','projects','ideas','notes','followups'].forEach(c=>S[c].forEach(i=>all.push({c,i})));return all.sort((a,b)=>b.i.updated-a.i.updated).slice(0,3)}
+function ago(at){const m=Math.max(0,Math.round((Date.now()-at)/60000));if(m<1)return 'just now';if(m<60)return m+' min ago';if(m<1440)return Math.round(m/60)+' h ago';if(m<2880)return 'yesterday';return Math.round(m/1440)+' days ago'}
+function weekDays(){const p=rp(),base=new Date(Date.UTC(+p.year,+p.month-1,+p.day));const dow=base.getUTCDay();return Array.from({length:7},(_,k)=>{const d=new Date(base.getTime()+(k-dow)*864e5);return d.toISOString().slice(0,10)})}
+
+/* ---------- create ---------- */
+function createItem(type,text){const t=Date.now(),coll=COLL[type];let it;
+ if(type==='Task')it={title:text,status:U.presetDue?'Scheduled':'Inbox',due:U.presetDue||'',priority:'NN',project:'',postponed:0,notes:''};
+ else if(type==='Goal')it={title:text,area:'',deadline:'',status:'Active',progress:null,notes:'',color:'#B9A6FF'};
+ else if(type==='Project')it={name:text,objective:'',status:'Off',nextAction:'',deadline:'',notes:'',color:'#6D4AFF'};
+ else if(type==='Idea')it={title:text,kind:'Other',tags:'',md:'',stage:'Captured'};
+ else if(type==='Note')it={title:text,kind:'Note',tags:'',md:'',stage:''};
+ else if(type==='Follow-up')it={name:text,context:'',lastInteraction:'',nextFollowUp:'',notes:''};
+ else if(type==='Habit')it={name:text,color:['#FFB25B','#3DD68C','#4F8BFF','#F0508C','#B9A6FF'][S.habits.length%5],days:{}};
+ it.id=uid();it.created=t;it.updated=t;S[coll].push(it);save();return it}
+function reply(type,text,it){const q='“'+text+'”';
+ return({Task:(it&&it.due)?'Added task: '+q+' — Scheduled '+fmtDate(it.due)+'.':'Added task: '+q+' — Inbox, no date. Tap it to set a date.',Idea:'Saved idea: '+q+' — Stage: Captured.',Goal:'New goal: '+q+' — added to Focus Goals. Open it to set a target date.',Project:'New project: '+q+' — Status Off. Open it to set the next action.',['Follow-up']:'Follow-up with '+q+' added. Open it to set a date.',Note:'Saved note: '+q+'.',Habit:'Added habit: '+q+' — it is now in your weekly tracker.'})[type]}
+
+/* ---------- render: main ---------- */
+const NAV=[['Home','M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z','top'],['Calendar','M3 5h18v16H3zM3 10h18M8 3v4M16 3v4','cal'],['Tasks','M5 4h14v17H5zM9 4V2.5h6V4M8.5 11l2 2 4-4M8.5 17h7','tasks'],['Projects','M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z','proj'],['Goals','M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z','goals'],['Ideas — Pump your mind','M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z','ideas'],['Follow-ups','M9 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM2.5 20c.5-3.5 3.2-5.5 6.5-5.5s6 2 6.5 5.5M17 6.5a3 3 0 0 1 0 5.5M19 14.8c1.4.8 2.3 2.4 2.5 5.2','fu']];
+const ic=(d,sw)=>'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(sw||1.8)+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>';
+function renderNav(){$('#nav').innerHTML=LOGO+NAV.map((n,i)=>'<button class="nb'+(i===0?' on':'')+'" aria-label="'+esc(n[0])+'" data-a="nav" data-to="'+n[2]+'">'+ic(n[1])+'</button>').join('')+
+ '<button class="nb" aria-label="Settings" aria-expanded="'+U.settings+'" data-a="settings">'+ic('M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z')+'</button><div class="sp"></div>'+
+ '<button class="nb" aria-label="Full screen" data-a="fs">'+ic('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')+'</button><button class="nb" aria-label="Toggle dark / light mode" data-a="theme">'+ic('M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z')+'</button>'}
+function menuBtn(key,label,items,confirmQ,doAct,doLabel){const open=U.menu===key;let h='<button class="ib" aria-label="More options: '+esc(label)+'" aria-expanded="'+open+'" data-a="menu" data-k="'+key+'">⋯</button>';if(!open)return h;
+ h+='<div class="menu">';if(U.confirm){h+='<div class="q">'+esc(confirmQ)+'</div><div class="yn"><button class="btn pri" data-a="do" data-k="'+key+'">Yes</button><button class="btn" data-a="menux">No</button></div>'}
+ else h+='<button data-a="open" data-k="'+key+'">Open item</button><button style="color:var(--red)" data-a="ask">'+esc(doLabel)+'…</button>';return h+'</div>'}
+function calHTML(){const p=rp();let y=+p.year,m=+p.month-1+U.mo;y+=Math.floor(m/12);m=((m%12)+12)%12;const first=new Date(Date.UTC(y,m,1)).getUTCDay(),dim=new Date(Date.UTC(y,m+1,0)).getUTCDate(),pd=new Date(Date.UTC(y,m,0)).getUTCDate(),tot=Math.ceil((first+dim)/7)*7;
+ const label=new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(y,m,1)));
+ const due=new Set(S.tasks.filter(t=>isOpen(t)&&t.due).map(t=>t.due.slice(0,10)).concat(evDates()));const td=todayStr();let c='';
+ for(let i=0;i<tot;i++){const n=i-first+1;if(n<1)c+='<div class="x o">'+(pd+n)+'</div>';else if(n>dim)c+='<div class="x o">'+(n-dim)+'</div>';else{const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(n).padStart(2,'0');c+='<button class="x'+(ds===td?' t':'')+'" aria-label="Open '+fmtDate(ds)+'" data-a="day" data-d="'+ds+'">'+n+(due.has(ds)&&ds!==td?'<i></i>':'')+'</button>'}}
+ return '<section class="c" id="cal" style="flex:0 1 260px" aria-labelledby="cal-h"><h2 id="cal-h" style="margin-bottom:8px">Calendar</h2><div class="cn"><button aria-label="Previous month" data-a="mo" data-d="-1">‹</button><b style="font-size:15px">'+label+'</b><button aria-label="Next month" data-a="mo" data-d="1">›</button></div><div class="cal">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(w=>'<div class="w">'+w+'</div>').join('')+c+'</div></section>'}
+function schedHTML(){const td=todayStr(),items=[];
+ S.tasks.filter(t=>isOpen(t)&&t.due&&t.due.slice(0,10)===td).forEach(t=>items.push({tm:timeOf(t.due),end:'',title:t.title,sub:(t.project||PRIO[t.priority].l)+(t.calEventId?' · on Google Calendar':''),col:PRIO[t.priority].c}));
+ eventsOn(td).forEach(e=>items.push({tm:e.allDay?'':e.start,end:e.end,title:e.title,sub:'Google Calendar'+(e.allDay?' · all day':''),col:'#4F8BFF'}));
+ items.sort((a,b)=>(a.tm||'99')<(b.tm||'99')?-1:((a.tm||'99')>(b.tm||'99')?1:0));
+ const g=S.settings.notif.gcal;
+ return '<section class="c" style="flex:1 1 320px" aria-labelledby="td-h"><div class="hd"><h2 id="td-h">Today\'s Schedule</h2><span class="hint">'+(g?(U.calStatus&&U.calStatus!=='ok'?'App tasks · Calendar: '+esc(U.calStatus):'App tasks + Google Calendar'):'App tasks · Google Calendar off')+'</span></div>'+
+ (items.length?items.map(e=>'<div class="ev" style="box-shadow:inset 3px 0 0 '+e.col+'"><div class="tm">'+(e.tm?e.tm+(e.end?'<br><span style="color:var(--mu)">'+e.end+'</span>':''):'All day')+'</div><div><div class="tt"><i style="background:'+e.col+'"></i>'+esc(e.title)+'</div><div class="st">'+esc(e.sub)+'</div></div></div>').join(''):'<div class="empty">Nothing scheduled for today.'+(g?'':' Turn on Google Calendar in Settings → Connections to see your events here.')+'</div>')+'</section>'}
+const pctOf=x=>x==null?0:Math.round(x*100);
+function projStats(p){const ts=S.tasks.filter(x=>x.project===p.name&&x.status!=='Cancelled');const d=ts.filter(x=>x.status==='Done').length;return{d,n:ts.length,pct:ts.length?d/ts.length:null}}
+function goalStats(g){const ps=S.projects.filter(p=>p.goal===g.id&&p.status!=='Archived');let d=0,n=0;ps.forEach(p=>{const s=projStats(p);d+=s.d;n+=s.n});return{d,n,ps:ps.length,pct:n?d/n:(g.progress==null?null:g.progress)}}
+function goalsHTML(){const gs=S.goals.filter(g=>g.status!=='Dropped');const dl=gs.map(g=>g.deadline).filter(Boolean).sort()[0];
+ return '<section class="c" id="goals" style="flex:1 1 420px" aria-labelledby="goal-h"><div class="hd"><h2 id="goal-h">Focus Goals</h2><div style="display:flex;align-items:center;gap:10px"><span class="hint">'+(dl?'Target '+fmtDate(dl):'No target set')+'</span><button class="btn" data-a="add" data-t="Goal">+ Goal</button></div></div>'+
+ (gs.length?gs.map(g=>{const st=goalStats(g),pc=pctOf(st.pct);const sub=st.ps?st.ps+' project'+(st.ps>1?'s':'')+' · '+st.d+'/'+st.n+' tasks done':'No projects linked yet';return '<div class="g"><div class="l"><button data-a="open" data-k="goals:'+g.id+'" style="flex:1 1 auto;min-width:0;text-align:left;border:0;background:transparent;padding:0;font-weight:600;font-size:14px">'+esc(g.title)+'</button><span style="color:var(--mu)">'+(st.pct==null?'[progress]':pc+'%')+(g.status==='Paused'?' · paused':'')+'</span>'+menuBtn('goals:'+g.id,g.title,0,'Drop “'+g.title+'”? It will be marked Dropped.','drop','Drop')+'</div><div class="bar"><div style="width:'+pc+'%;background:'+(g.color||'#B9A6FF')+'"></div></div><div class="hint" style="margin-top:4px">'+sub+'</div></div>'}).join(''):'<div class="empty">No goals yet. Use “+ Goal”.</div>')+'</section>'}
+function habitsHTML(){const wd=weekDays(),td=todayStr(),hs=S.habits.filter(h=>!h.removed);
+ let g='<div class="hg"><div></div>'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((n,i)=>'<div class="dn'+(wd[i]===td?' today':'')+'">'+n+'</div>').join('');
+ hs.forEach(h=>{g+='<div class="nm"><i style="background:'+h.color+'"></i><span class="n">'+esc(h.name)+'</span>'+menuBtn('habits:'+h.id,h.name,0,'Remove “'+h.name+'”? It is hidden, not deleted.','remove','Remove')+'</div>';wd.forEach(d=>{const on=!!h.days[d];g+='<button class="hb'+(on?' on':'')+'" style="'+(on?'background:'+h.color:'')+'" aria-label="'+esc(h.name)+' '+fmtDate(d)+'" aria-pressed="'+on+'" data-a="hab" data-id="'+h.id+'" data-d="'+d+'"></button>'})});g+='</div>';
+ return '<section class="c" style="flex:1 1 460px" aria-labelledby="hab-h"><div class="hd"><h2 id="hab-h">Habits</h2><div style="display:flex;align-items:center;gap:10px"><span class="hint">This week</span><button class="btn" data-a="add" data-t="Habit">+ Habit</button></div></div>'+(hs.length?g:'<div class="empty">No habits yet. Use “+ Habit”.</div>')+
+ (S.settings.habitsConfirmed?'':'<div class="note">Workout, Quran and Language are sample habits. <button class="btn" data-a="habok">Keep these</button> <span>or rename them via ⋯ → Open item.</span></div>')+'</section>'}
+function tasksHTML(){const vt=visibleTasks();
+ return '<section class="c" id="tasks" style="flex:1 1 520px" aria-labelledby="tasks-h"><div class="hd"><h2 id="tasks-h">My Tasks</h2><button class="btn" data-a="add" data-t="Task">+ Task</button></div><div class="tabs" role="tablist" aria-label="Task filter">'+['All','Today','Next','Inbox','Done'].map(l=>'<button role="tab" aria-selected="'+(l===U.tab)+'" class="'+(l===U.tab?'on':'')+'" data-a="tab" data-v="'+l+'">'+l+'</button>').join('')+'</div>'+
+ (vt.length?vt.map(t=>{const w=whenLabel(t),p=PRIO[t.priority]||PRIO.NN,dn=t.status==='Done';return '<div class="tk"><button class="ck'+(dn?' on':'')+'" aria-label="Mark complete: '+esc(t.title)+'" aria-pressed="'+dn+'" data-a="done" data-id="'+t.id+'">'+(dn?ic('M5 12l5 5 9-10',3).replace('width="24" height="24"','width="14" height="14"'):'')+'</button><button class="bd" data-a="open" data-k="tasks:'+t.id+'"><div class="ti'+(dn?' dn':'')+'">'+esc(t.title)+'</div><div class="pj">'+esc(t.project||'')+(t.postponed?' · postponed '+t.postponed+'×':'')+'</div></button><span class="pill" style="color:'+p.c+';border-color:'+p.c+'">'+p.l+'</span><span class="wh'+(w.od?' od':'')+'">'+esc(w.s)+'</span></div>'}).join(''):'<div class="empty" style="margin-top:8px">Nothing here. Use “+ Task” or the chat bar.</div>')+'</section>'}
+const CIRC=552.9;
+function timerHTML(){const r=U.tm.rem;return '<section class="c" style="flex:0 1 300px" aria-labelledby="focus-h"><div class="hd"><h2 id="focus-h">Focus Timer</h2><button class="ib" aria-label="Reset timer" data-a="tmreset">'+ic('M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5',2.2).replace('width="24" height="24"','width="18" height="18"')+'</button></div><div class="tm2"><svg viewBox="0 0 220 220" aria-hidden="true"><defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C084FC"/><stop offset="1" stop-color="#6D4AFF"/></linearGradient></defs><circle cx="110" cy="110" r="88" fill="none" stroke="var(--track)" stroke-width="10"/><circle id="tmRing" cx="110" cy="110" r="88" fill="none" stroke="url(#ring)" stroke-width="10" stroke-linecap="round" transform="rotate(-90 110 110)" stroke-dasharray="'+CIRC+'" stroke-dashoffset="'+(CIRC*(1-r/1500)).toFixed(1)+'"/></svg><div class="in"><button data-a="tmtoggle" aria-label="Start or pause timer"><span id="tmTxt">'+tmText()+'</span><span id="tmLbl">'+tmLbl()+'</span></button></div></div></section>'}
+const tmText=()=>String(Math.floor(U.tm.rem/60)).padStart(2,'0')+':'+String(U.tm.rem%60).padStart(2,'0');
+const tmLbl=()=>U.tm.rem===0?'Done — tap to restart':(U.tm.running?'Focusing — tap to pause':'Tap to start');
+function liItem(c,i,sub,right){const av=c==='followups'?(i.name||'?').slice(0,2).toUpperCase():(titleOf(c,i)||'?').slice(0,1).toUpperCase();return '<button class="li" data-a="open" data-k="'+c+':'+i.id+'"><span class="av" style="background:'+(i.color||tcol(TYPEOF[c]))+'33;color:'+(i.color||tcol(TYPEOF[c]))+'">'+esc(av)+'</span><span class="tx"><b>'+esc(titleOf(c,i))+'</b><small>'+esc(sub)+'</small></span>'+(right||'')+'</button>'}
+function fuHTML(){const f=S.followups.slice().sort((a,b)=>(a.nextFollowUp||'9999')<(b.nextFollowUp||'9999')?-1:1),td=todayStr();
+ return '<section class="c" id="fu" style="flex:1 1 340px" aria-labelledby="fu-h"><div class="hd"><h2 id="fu-h">Follow-ups</h2><button class="btn" data-a="add" data-t="Follow-up">+ Follow-up</button></div>'+(f.length?f.map(i=>{const n=i.nextFollowUp;const due=n&&n<=td;return liItem('followups',i,(i.context||'No context')+' · last talked '+(i.lastInteraction?fmtDate(i.lastInteraction):'[date]'),'<span class="pill" style="color:'+(due?'var(--orange)':'var(--mu)')+';border-color:'+(due?'var(--orange)':'var(--bd2)')+'">'+(n?(n===td?'Due today':n<td?'Overdue':fmtDate(n)):'No date')+'</span>')}).join(''):'<div class="empty">No follow-ups yet. Use “+ Follow-up”.</div>')+'</section>'}
+function capHTML(){const c=captures();return '<section class="c" style="flex:1 1 340px" aria-labelledby="cap-h"><div class="hd"><h2 id="cap-h">Recent Captures</h2><span class="hint">Last 3 · opens the item</span></div>'+(c.length?c.map(x=>{const i=x.i,verb=(i.updated-i.created)>1500?'Updated':'Created';return liItem(x.c,i,TYPEOF[x.c]+' · '+verb+' '+ago(i.updated),i.notionPageId?'<span style="color:var(--acl2)">↗</span>':'')}).join(''):'<div class="empty">Nothing captured yet.</div>')+'</section>'}
+function projHTML(){const ps=S.projects.filter(p=>p.status!=='Archived').sort((a,b)=>(a.status==='On'?0:1)-(b.status==='On'?0:1));
+ return '<section class="c" id="proj" style="flex:1 1 420px" aria-labelledby="proj-h"><div class="hd"><h2 id="proj-h">Projects &amp; Deadlines</h2><button class="btn" data-a="add" data-t="Project">+ Project</button></div>'+
+ (ps.length?ps.map(p=>{const st=projStats(p),pc=pctOf(st.pct),g=S.goals.find(x=>x.id===p.goal),on=p.status==='On';return '<div class="g" style="padding:12px;background:var(--inner);border-radius:14px;margin-bottom:12px"><div class="l" style="margin-bottom:8px"><button data-a="proj" data-id="'+p.id+'" style="flex:1 1 auto;min-width:0;text-align:left;border:0;background:transparent;padding:0;font-weight:600;font-size:14px">'+esc(p.name)+'</button><span class="pill" style="color:'+(on?'var(--green)':'var(--mu)')+';border-color:'+(on?'var(--green)':'var(--mu2)')+'">'+p.status+'</span><span style="color:var(--mu)">'+(st.n?pc+'%':'—')+'</span>'+menuBtn('projects:'+p.id,p.name,0,'Archive “'+p.name+'”? Status becomes Archived.','archive','Archive')+'</div><div class="bar"><div style="width:'+pc+'%;background:'+(p.color||'#6D4AFF')+'"></div></div><div class="hint" style="margin-top:6px">Next: '+esc(p.nextAction||'Not set')+' · '+(p.deadline?fmtDate(p.deadline):(p.nd?'No deadline':'[deadline]'))+(g?' · counts toward '+esc(g.title):'')+' · '+(st.n?st.d+'/'+st.n+' tasks':'No tasks yet')+'</div></div>'}).join(''):'<div class="empty">No projects yet.</div>')+'</section>'}
+function renderMain(){if(W){renderWidget();return}if(U.proj){renderProj();U.lastDay=todayStr();return}if(U.day){renderDay();U.lastDay=todayStr();return}const p=rp(),h=+p.hour,gr=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening';
+ const tm=new Intl.DateTimeFormat('en-US',{timeZone:RZ,hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date()).split(' ');
+ const cd=new Intl.DateTimeFormat('en-US',{timeZone:RZ,weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date());
+ $('#main').innerHTML='<header id="top"><div><h1><span id="greet" style="color:var(--white)">'+gr+'</span>,<br><span>Ahmed</span></h1><p class="tag">Capture · Organize · Remind · Review · Act</p></div><div class="clock"><div class="t"><span id="clk">'+tm[0]+'</span><small id="clkap">'+tm[1]+'</small></div><div class="d" id="clkd">'+cd+' · Riyadh</div></div></header>'+
+ needTimeHTML()+'<div class="row">'+calHTML()+schedHTML()+'</div><div class="row">'+tasksHTML()+timerHTML()+'</div><div class="row">'+habitsHTML()+fuHTML()+'</div><div class="row">'+goalsHTML()+projHTML()+'</div><div class="row"><div style="flex:1 1 100%">'+capHTML()+'</div></div>';U.lastDay=todayStr()}
+const shiftDay=(d,n)=>{const a=d.split('-').map(Number);return new Date(Date.UTC(a[0],a[1]-1,a[2]+n)).toISOString().slice(0,10)};
+const longDate=d=>{const a=d.split('-').map(Number);return new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date(Date.UTC(a[0],a[1]-1,a[2])))};
+function dayTaskRow(t){const p=PRIO[t.priority]||PRIO.NN,dn=t.status==='Done',tm=timeOf(t.due);return '<div class="tk"><button class="ck'+(dn?' on':'')+'" aria-label="Mark complete: '+esc(t.title)+'" aria-pressed="'+dn+'" data-a="done" data-id="'+t.id+'">'+(dn?ic('M5 12l5 5 9-10',3).replace('width="24" height="24"','width="14" height="14"'):'')+'</button><button class="bd" data-a="open" data-k="tasks:'+t.id+'"><div class="ti'+(dn?' dn':'')+'">'+esc(t.title)+'</div><div class="pj">'+esc(t.project||'')+(t.postponed?' · postponed '+t.postponed+'×':'')+'</div></button><span class="pill" style="color:'+p.c+';border-color:'+p.c+'">'+p.l+'</span><span class="wh">'+(tm||'All day')+'</span></div>'}
+function renderDay(){const d=U.day,td=todayStr();
+ const tasks=S.tasks.filter(t=>t.status!=='Cancelled'&&t.due&&t.due.slice(0,10)===d).sort((a,b)=>(timeOf(a.due)||'99')<(timeOf(b.due)||'99')?-1:1);
+ const hs=S.habits.filter(h=>!h.removed),fut=d>td,nh=hs.filter(h=>h.days[d]).length,nd=tasks.filter(t=>t.status==='Done').length;
+ const rel=d===td?'Today':(d<td?'Past day':'Upcoming day');
+ $('#main').innerHTML='<header><div><button class="btn" data-a="dayback">← Back to dashboard</button><h1 style="margin-top:14px"><span style="color:var(--white)">'+esc(longDate(d))+'</span></h1><p class="tag">'+rel+' · Riyadh</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-a="dayshift" data-d="-1">‹ Previous day</button><button class="btn" data-a="dayshift" data-d="1">Next day ›</button></div></header>'+
+ '<div class="row"><section class="c" style="flex:1 1 420px" aria-labelledby="dt-h"><div class="hd"><h2 id="dt-h">Tasks</h2><div style="display:flex;align-items:center;gap:10px"><span class="hint">'+(tasks.length?nd+' of '+tasks.length+' done':'None scheduled')+'</span><button class="btn" data-a="dayadd">+ Task for this day</button></div></div>'+(tasks.length?tasks.map(dayTaskRow).join(''):'<div class="empty">No tasks are dated for this day. Use “+ Task for this day”.</div>')+dayEvents(d)+'</section>'+
+ '<section class="c" style="flex:1 1 320px" aria-labelledby="dh-h"><div class="hd"><h2 id="dh-h">Habits</h2><span class="hint">'+(hs.length?(fut?'Not yet':nh+' of '+hs.length+' done'):'')+'</span></div>'+
+ (hs.length?hs.map(h=>{const on=!!h.days[d];return '<div class="tk"><button class="ck'+(on?' on':'')+'" style="'+(on?'background:'+h.color+';border-color:'+h.color:'')+'" aria-label="'+esc(h.name)+'" aria-pressed="'+on+'" '+(fut?'disabled':'data-a="hab" data-id="'+h.id+'" data-d="'+d+'"')+'>'+(on?ic('M5 12l5 5 9-10',3).replace('width="24" height="24"','width="14" height="14"'):'')+'</button><div class="bd" style="flex:1;min-width:0"><div class="ti">'+esc(h.name)+'</div></div></div>'}).join(''):'<div class="empty">No habits yet. Use “+ Habit” on the dashboard.</div>')+(fut?'<div class="hint" style="margin-top:12px">Habits can be ticked for today and past days only.</div>':'')+'</section></div>'}
+function projTaskRow(t){const p=PRIO[t.priority]||PRIO.NN,dn=t.status==='Done',w=whenLabel(t);return '<div class="tk"><button class="ck'+(dn?' on':'')+'" aria-label="Mark complete: '+esc(t.title)+'" aria-pressed="'+dn+'" data-a="done" data-id="'+t.id+'">'+(dn?ic('M5 12l5 5 9-10',3).replace('width="24" height="24"','width="14" height="14"'):'')+'</button><button class="bd" data-a="open" data-k="tasks:'+t.id+'"><div class="ti'+(dn?' dn':'')+'">'+esc(t.title)+'</div><div class="pj">'+(t.postponed?'postponed '+t.postponed+'×':'')+'</div></button><span class="pill" style="color:'+p.c+';border-color:'+p.c+'">'+p.l+'</span><span class="wh'+(w.od?' od':'')+'">'+esc(w.s)+'</span></div>'}
+function renderProj(){const p=find('projects',U.proj);if(!p){U.proj=null;renderMain();return}
+ const st=projStats(p),pc=pctOf(st.pct),g=S.goals.find(x=>x.id===p.goal),gst=g?goalStats(g):null,gpc=gst?pctOf(gst.pct):0;
+ const ts=S.tasks.filter(x=>x.project===p.name&&x.status!=='Cancelled').sort((a,b)=>(isOpen(b)-isOpen(a))||((a.due||'9999')<(b.due||'9999')?-1:1)||(b.created-a.created));
+ const gopts=['<option value="">— none —</option>'].concat(S.goals.filter(x=>x.status!=='Dropped').map(x=>'<option value="'+x.id+'"'+(x.id===p.goal?' selected':'')+'>'+esc(x.title)+'</option>')).join('');
+ $('#main').innerHTML='<header><div><button class="btn" data-a="projback">← Back to dashboard</button><h1 style="margin-top:14px"><span style="color:var(--white)">'+esc(p.name)+'</span></h1><p class="tag">'+p.status+' · Next: '+esc(p.nextAction||'Not set')+' · '+(p.deadline?fmtDate(p.deadline):(p.nd?'No deadline':'[deadline]'))+'</p></div><button class="btn" data-a="open" data-k="projects:'+p.id+'">Edit details</button></header>'+
+ '<div class="row"><section class="c" style="flex:1 1 520px" aria-labelledby="pt-h"><div class="hd"><h2 id="pt-h">Project tasks</h2><span class="hint">'+(st.n?st.d+' of '+st.n+' done · '+pc+'%':'No tasks yet')+'</span></div><div class="bar" style="margin-bottom:14px"><div style="width:'+pc+'%;background:'+(p.color||'#6D4AFF')+'"></div></div>'+
+ '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><input id="pt_title" placeholder="Add a task to this project…" aria-label="New task title" style="flex:1 1 220px;min-width:0;background:var(--inner);border:1px solid var(--bd);border-radius:10px;padding:9px 11px;font-size:14px;color:var(--tx)"><input id="pt_date" type="date" aria-label="Due date (optional)" style="background:var(--inner);border:1px solid var(--bd);border-radius:10px;padding:8px 10px;font-size:14px;color:var(--tx)"><button class="btn pri" data-a="projadd">+ Add task</button></div>'+
+ (ts.length?ts.map(projTaskRow).join(''):'<div class="empty">No tasks yet. Add the real steps of this project here, and the bar fills as you finish them.</div>')+'</section>'+
+ '<section class="c" style="flex:1 1 300px" aria-labelledby="pg-h"><div class="hd"><h2 id="pg-h">Goal</h2></div><label class="fld">Counts toward<select id="pj_goal">'+gopts+'</select></label>'+
+ (g?'<div class="g" style="margin-top:6px"><div class="l"><b>'+esc(g.title)+'</b><span style="color:var(--mu)">'+(gst.pct==null?'[progress]':gpc+'%')+'</span></div><div class="bar"><div style="width:'+gpc+'%;background:'+(g.color||'#B9A6FF')+'"></div></div><div class="hint" style="margin-top:4px">'+gst.ps+' project'+(gst.ps>1?'s':'')+' · '+gst.d+'/'+gst.n+' tasks done</div></div><div class="hint">Finishing tasks here fills this project, and through it the goal.</div>':'<div class="empty">Not linked to a goal. Pick one above so finished tasks move its progress bar.</div>')+'</section></div>'}
+/* ---------- Google Calendar (Stage 2) ---------- */
+const GC='Google Calendar';
+async function mcpc(){try{return window.claude&&claude.use?await claude.use('mcp'):null}catch(_){return null}}
+function calErr(e){const c=e&&e.code;if(c==='needs_reauth')return 'Reconnect Google Calendar in claude.ai → Settings → Connectors.';if(c==='server_not_connected'||c==='selection_required')return 'Google Calendar is not connected in claude.ai → Settings → Connectors.';if(c==='not_in_manifest'||c==='consent_required'||c==='approval_required'||c==='not_granted')return 'Access to Google Calendar was not allowed for this page.';if(c==='blocked_by_policy')return 'Your organization blocks this Calendar action.';if(c==='tool_error')return 'Google Calendar refused the request.';if(c==='server_unavailable'||c==='upstream_error')return 'Google Calendar is not reachable right now.';return (e&&e.message)||'Calendar request failed.'}
+const monthOf=off=>{const p=rp();let y=+p.year,m=+p.month-1+off;y+=Math.floor(m/12);m=((m%12)+12)%12;return{y,m}};
+function normEv(e){const s=e.start||{},en=e.end||{};if(s.dateTime){const a=rp(Date.parse(s.dateTime)),b=en.dateTime?rp(Date.parse(en.dateTime)):null;return{id:e.id,title:e.summary||'(no title)',allDay:false,date:a.year+'-'+a.month+'-'+a.day,start:a.hour+':'+a.minute,end:b?b.hour+':'+b.minute:''}}return{id:e.id,title:e.summary||'(no title)',allDay:true,date:(s.date||'').slice(0,10),start:'',end:''}}
+U.evm={};
+function allEvents(){const seen={},out=[];Object.values(U.evm).forEach(m=>m.events.forEach(e=>{if(!seen[e.id]){seen[e.id]=1;out.push(e)}}));return out}
+function eventsOn(d){if(!S.settings.notif.gcal)return [];const mine=new Set(S.tasks.map(t=>t.calEventId).filter(Boolean));return allEvents().filter(e=>e.date===d&&!mine.has(e.id)).sort((a,b)=>(a.start||'99')<(b.start||'99')?-1:1)}
+function evDates(){if(!S.settings.notif.gcal)return [];return allEvents().map(e=>e.date)}
+async function fetchMonth(y,m,force){if(!S.settings.notif.gcal)return;const key=y+'-'+String(m+1).padStart(2,'0');if(!force&&U.evm[key]&&Date.now()-U.evm[key].at<300000)return;const mc=await mcpc();if(!mc){U.calStatus='Not available here. Open Atlas inside claude.ai.';return}
+ const last=String(new Date(Date.UTC(y,m+1,0)).getUTCDate()).padStart(2,'0');
+ try{const r=await mc.callTool(GC,'list_events',{startTime:shiftDay(key+'-01',-7)+'T00:00:00',endTime:shiftDay(key+'-'+last,8)+'T00:00:00',timeZone:RZ,orderBy:'startTime',pageSize:250});const ev=((r.payload&&r.payload.events)||[]).filter(e=>e.status!=='cancelled').map(normEv);U.evm[key]={events:ev,at:Date.now()};U.calStatus='ok';U.calAt=Date.now();if(!U.proj)renderMain();if(U.settings)renderPanels()}
+ catch(e){U.calStatus=calErr(e);if(U.settings)renderPanels();if(!U.proj)renderMain()}}
+const ensureDay=d=>{const a=d.split('-').map(Number);fetchMonth(a[0],a[1]-1)};
+function gcStatus(){const n=S.settings.notif;if(U.calStatus==='testing')return 'Testing the connection…';if(n.gcal)return (U.calStatus&&U.calStatus!=='ok'?'Problem: '+U.calStatus:'On · connected'+(U.calAt?' · last read '+new Date(U.calAt).toLocaleTimeString('en-GB',{timeZone:RZ,hour:'2-digit',minute:'2-digit'}):''))+' · tasks with date + time become events with a '+n.lead+' min alert';return U.calStatus&&U.calStatus!=='ok'?'Off · '+U.calStatus:'Off · turn on to test the connection'}
+const endOf=due=>{const d=due.slice(0,10),a=timeOf(due).split(':').map(Number);let tot=a[0]*60+a[1]+30,dd=d;if(tot>=1440){tot-=1440;dd=shiftDay(d,1)}return dd+'T'+String(Math.floor(tot/60)).padStart(2,'0')+':'+String(tot%60).padStart(2,'0')+':00'};
+const startOf=due=>due.slice(0,10)+'T'+timeOf(due)+':00';
+async function calCreate(t){if(!S.settings.notif.gcal||!timeOf(t.due)||t.calEventId)return;const mc=await mcpc();if(!mc){toast('Google Calendar is not available in this view. Nothing was added.','Google Calendar');return}
+ try{const r=await mc.callTool(GC,'create_event',{summary:t.title,description:'Created by Atlas',startTime:startOf(t.due),endTime:endOf(t.due),timeZone:RZ,overrideReminders:[{method:'popup',minutes:S.settings.notif.lead}],notificationLevel:'NONE'});const id=r.payload&&r.payload.id;if(!id)throw{message:'No event id came back.'};t.calEventId=id;t.calKept=false;t.syncedAt=Date.now();save();toast('Added to Google Calendar: '+t.title+' · '+fmtDate(t.due)+' '+timeOf(t.due),'Google Calendar');const k=monthOf(U.mo);fetchMonth(k.y,k.m,true);renderMain()}
+ catch(e){toast('Couldn\'t add to Google Calendar — '+calErr(e)+' Nothing was added.','Google Calendar')}}
+async function calUpdate(t){const mc=await mcpc();if(!mc)return;
+ try{await mc.callTool(GC,'update_event',{eventId:t.calEventId,summary:t.title,startTime:startOf(t.due),endTime:endOf(t.due),timeZone:RZ,overrideReminders:[{method:'popup',minutes:S.settings.notif.lead}],notificationLevel:'NONE'});t.calKept=false;t.syncedAt=Date.now();save();toast('Google Calendar updated: '+t.title+' · '+fmtDate(t.due)+' '+timeOf(t.due),'Google Calendar');const k=monthOf(U.mo);fetchMonth(k.y,k.m,true)}
+ catch(e){toast('Couldn\'t update Google Calendar — '+calErr(e)+' Nothing changed there.','Google Calendar')}}
+async function calDelete(t){const mc=await mcpc();if(!mc){toast('Google Calendar is not available in this view. Nothing was removed.','Google Calendar');return}
+ try{await mc.callTool(GC,'delete_event',{eventId:t.calEventId,notificationLevel:'NONE'});t.calEventId='';t.syncedAt=Date.now();save();toast('Removed from Google Calendar: '+t.title,'Google Calendar');const k=monthOf(U.mo);fetchMonth(k.y,k.m,true);renderMain()}
+ catch(e){toast('Couldn\'t remove it from Google Calendar — '+calErr(e)+' Nothing changed there.','Google Calendar')}}
+function askRemove(t,why){if(!t.calEventId||!S.settings.notif.gcal||t.calKept)return;const b=$('#toastbox');clearTimeout(toastT);b.innerHTML='<div id="toast" role="alertdialog"><b>Google Calendar</b><span>'+esc(why)+' Remove it from Google Calendar too?<div style="display:flex;gap:8px;margin-top:8px"><button class="btn pri" data-a="askyes" data-id="'+t.id+'">Yes, remove</button><button class="btn" data-a="askno" data-id="'+t.id+'">No, keep</button></div></span></div>'}
+function needTimeNote(t){if(!S.settings.notif.gcal||!t||!t.due||timeOf(t.due)||t.calSkip)return;toast('“'+t.title+'” has a date ('+fmtDate(t.due)+') but no time. Set a time to put it on Google Calendar.','Add a time',true)}
+async function calAfterSave(t,pd,pt,pst){if(!S.settings.notif.gcal)return;
+ if(t.status==='Done'||t.status==='Cancelled'){if(t.calEventId&&pst!==t.status)askRemove(t,'“'+t.title+'” is '+t.status.toLowerCase()+'.');return}
+ if(!t.due){if(t.calEventId)askRemove(t,'“'+t.title+'” no longer has a date.');return}
+ if(!timeOf(t.due)){if(t.calEventId)askRemove(t,'“'+t.title+'” no longer has a time.');else needTimeNote(t);return}
+ if(t.calEventId){if(t.due!==pd||t.title!==pt)await calUpdate(t)}else await calCreate(t)}
+function calBits(t){if(!S.settings.notif.gcal)return t.due?gcalLink(t):'';if(t.calEventId)return '<div class="hint" style="margin-top:6px">On Google Calendar ✓</div>';if(t.due&&timeOf(t.due)&&isOpen(t))return '<div style="margin-top:8px"><button class="btn" data-a="mcal">Add to Google Calendar</button></div>';if(t.due&&!timeOf(t.due))return '<div class="hint" style="margin-top:6px">Add a time to put this on Google Calendar.</div>';return ''}
+function needTimeHTML(){if(!S.settings.notif.gcal)return '';const a=S.tasks.filter(t=>isOpen(t)&&t.due&&!timeOf(t.due)&&!t.calSkip).sort((x,y)=>x.due<y.due?-1:1);if(!a.length)return '';
+ return '<section class="c" style="border-color:var(--orange)" aria-label="Tasks that need a time"><div class="hd"><h2>⏰ '+a.length+' dated task'+(a.length>1?'s':'')+' need a time</h2><span class="hint">Add a time and Atlas puts it on Google Calendar with an alert</span></div>'+a.slice(0,5).map(t=>'<div class="tk"><div class="bd" style="flex:1;min-width:0"><div class="ti">'+esc(t.title)+'</div><div class="pj">'+fmtDate(t.due)+'</div></div><input type="time" id="nt_'+t.id+'" aria-label="Time for '+esc(t.title)+'" style="background:var(--inner);border:1px solid var(--bd);border-radius:10px;padding:7px 9px;color:var(--tx)"><button class="btn pri" data-a="ntadd" data-id="'+t.id+'">Add</button><button class="btn" data-a="ntskip" data-id="'+t.id+'">Skip</button></div>').join('')+(a.length>5?'<div class="hint" style="margin-top:8px">+ '+(a.length-5)+' more</div>':'')+'</section>'}
+function dayEvents(d){if(!S.settings.notif.gcal)return '<div class="hint" style="margin-top:12px">Turn on Google Calendar in Settings → Connections to see events here.</div>';const ev=eventsOn(d);return '<h2 style="font-size:15px;margin:16px 0 8px">Google Calendar</h2>'+(ev.length?ev.map(e=>'<div class="ev" style="box-shadow:inset 3px 0 0 #4F8BFF"><div class="tm">'+(e.allDay?'All day':e.start+(e.end?'<br><span style="color:var(--mu)">'+e.end+'</span>':''))+'</div><div><div class="tt"><i style="background:#4F8BFF"></i>'+esc(e.title)+'</div></div></div>').join(''):'<div class="empty">No other events on this day.</div>')}
+/* ---------- reminders (while the app is open) ---------- */
+function checkReminders(){if(!ready)return;const now=Date.now(),lead=S.settings.notif.lead,msgs=[];let ch=false;
+ S.tasks.forEach(t=>{if(!isOpen(t)||!t.due||!timeOf(t.due)||t.rem===t.due)return;const due=Date.parse(t.due.slice(0,10)+'T'+timeOf(t.due)+':00+03:00');if(isNaN(due))return;if(now>=due+3600000){t.rem=t.due;ch=true}else if(now>=due-lead*60000){t.rem=t.due;ch=true;const mn=Math.round((due-now)/60000);msgs.push(t.title+' — '+(mn>0?'due in '+mn+' min':'due now')+' ('+timeOf(t.due)+')')}});
+ const td=todayStr();if(+rp().hour>=9&&S.lastDigest!==td){S.lastDigest=td;ch=true;const n=S.tasks.filter(t=>isOpen(t)&&t.due&&t.due.slice(0,10)<=td&&!timeOf(t.due)).length;if(n)msgs.push(n+' task'+(n>1?'s are':' is')+' due today or overdue (no set time)')}
+ if(msgs.length)toast(msgs.join(' · '),'Atlas reminder',true);if(ch)save()}
+/* ---------- Notion sync (Stage 3): one-way, button only ---------- */
+const NB='https://app.notion.com/p/';
+const NV={goals:{url:NB+'99015953a2c14f55ba1be587f39377c3?v=3eda6eaf91a681718209000ce154fbff',ds:'68f205a9-7b3b-4f88-80ad-d00046a3ba6f',title:'Goal',label:'Goals'},
+ projects:{url:NB+'4a08fc35fc3a4c2dbeac32932381921a?v=3eda6eaf91a68193a73f000c0f58e361',ds:'7864c704-435f-4a42-97e6-5c79fcf38dc7',title:'Name',label:'Projects'},
+ tasks:{url:NB+'15c88527f5aa4287b382bcc9562ff701?v=3eda6eaf91a68135b7ca000c1fbbdd32',ds:'fcbc9054-514c-4ffb-8602-7f6f6dfb61f4',title:'Task ',label:'Tasks'},
+ followups:{url:NB+'433e98c603b14d9f8203c9acde6d1967?v=3eda6eaf91a681fa9490000c60ba072d',ds:'f250bbb3-5ccc-4223-bf4f-56fbc4750416',title:'Name',label:'Follow-ups'}};
+const NORDER=['goals','projects','tasks','followups'];
+const PRIOLBL={UI:'Urgent and Important',NUI:'Not Urgent but Important',UN:'Urgent and Not important',NN:'Not Urgent & Not Important'};
+const dashed=h=>h.replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5');
+function nErr(e){const c=e&&e.code;if(c==='needs_reauth')return 'Reconnect Notion in claude.ai → Settings → Connectors.';if(c==='server_not_connected'||c==='selection_required')return 'Notion is not connected in claude.ai → Settings → Connectors.';if(c==='not_in_manifest'||c==='consent_required'||c==='approval_required'||c==='not_granted')return 'Access to Notion was not allowed for this page.';if(c==='blocked_by_policy')return 'Your organization blocks this Notion action.';const m=(e&&e.message)||'Notion request failed.';return m.length>150?m.slice(0,147)+'…':m}
+const STOP=new Set(['the','a','an','to','for','of','and','my','with','in','on','at']);
+const toks=s=>new Set(String(s||'').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').split(/\s+/).filter(w=>w&&!STOP.has(w)));
+function sameTitle(a,b){const A=toks(a),B=toks(b);if(!A.size||!B.size)return false;const [s,l]=A.size<=B.size?[A,B]:[B,A];let inter=0;s.forEach(w=>{if(l.has(w))inter++});if(inter===s.size&&s.size===l.size)return true;return s.size>=2&&inter===s.size&&s.size>=Math.ceil(l.size*0.6)}
+async function nRead(mc,k){const cfg=NV[k];let rows=[],cur=null;for(let i=0;i<6;i++){const inp={mode:'view',view_url:cfg.url,page_size:100};if(cur)inp.start_cursor=cur;const r=await mc.callTool('Notion','notion-query-data-sources',{data:inp});const p=r.payload||{};rows=rows.concat(p.results||[]);if(!p.has_more||!p.next_cursor)break;cur=p.next_cursor}
+ return rows.map(x=>{const m=(x.url||'').match(/([0-9a-f]{32})/);return{title:String(x[cfg.title]!=null?x[cfg.title]:(x[cfg.title.trim()]||'')).trim(),pid:m?m[1]:''}}).filter(x=>x.pid)}
+function nProps(k,it){let p;
+ if(k==='tasks'){p={'Task ':it.title,Status:it.status,Done:(it.status==='Done'||it.status==='Cancelled')?'__YES__':'__NO__',Priority:PRIOLBL[it.priority]||PRIOLBL.NN,Postponed:it.postponed||0,Notes:it.notes||''};if(it.due){const tm=timeOf(it.due);p['date:Dates:start']=tm?it.due.slice(0,10)+'T'+tm+':00':it.due.slice(0,10);p['date:Dates:is_datetime']=tm?1:0}
+  const pr=S.projects.find(x=>x.name===it.project&&x.notionPageId);if(pr)p.Projects=JSON.stringify([NB+pr.notionPageId])}
+ else if(k==='projects'){p={Name:it.name,Objective:it.objective||'',Status:it.status,'Next Action':it.nextAction||'',Notes:it.notes||''};if(it.deadline){p['date:Deadline:start']=it.deadline;p['date:Deadline:is_datetime']=0}}
+ else if(k==='goals'){p={Goal:it.title,Status:it.status,Notes:it.notes||'',Done:it.status==='Achieved'?'__YES__':'__NO__'};if(it.deadline){p['date:Deadline:start']=it.deadline;p['date:Deadline:is_datetime']=0}const gp=goalStats(it).pct;if(gp!=null)p.Progress=Math.round(gp*100)/100}
+ else{p={Name:it.name,Context:it.context||'',Notes:it.notes||''};if(it.lastInteraction){p['date:Last interaction:start']=it.lastInteraction;p['date:Last interaction:is_datetime']=0}if(it.nextFollowUp){p['date:Next follow-up:start']=it.nextFollowUp;p['date:Next follow-up:is_datetime']=0}}
+ return p}
+const nTitle=(k,it)=>k==='projects'||k==='followups'?it.name:it.title;
+function notionStatus(){return (S.lastNotionSync?'Last synced '+ago(S.lastNotionSync):'Never synced')+' · one-way app → Notion, only when you press the button'}
+async function nStart(){U.settings=false;renderNav();U.modal={kind:'sync',st:'reading'};renderPanels();
+ try{const mc=await mcpc();if(!mc)throw{message:'Notion isn\'t reachable in this view. Nothing was synced.'};const rows={};for(const k of NORDER)rows[k]=await nRead(mc,k);
+  const plan={create:{},update:{},link:{},skip:{}};let total=0;
+  NORDER.forEach(k=>{plan.create[k]=[];plan.update[k]=[];plan.link[k]=[];plan.skip[k]=[];S[k].forEach(it=>{const nm=nTitle(k,it);
+   if(!it.notionPageId){if((k==='goals'&&it.status==='Dropped')||(k==='projects'&&it.status==='Archived')||(k==='tasks'&&!isOpen(it))){plan.skip[k].push(nm);return}
+    const m=rows[k].find(r=>sameTitle(r.title,nm));if(m)plan.link[k].push({it,pid:m.pid,nm});else{plan.create[k].push({it,nm});total++}}
+   else if(it.updated>(it.syncedAt||0)){plan.update[k].push({it,nm});total++}else plan.skip[k].push(nm)})});
+  U.modal={kind:'sync',st:'preview',plan,total,ideas:S.ideas.length};renderPanels()}
+ catch(e){U.modal={kind:'sync',st:'error',msg:(e&&e.code?nErr(e):(e&&e.message)||'Notion request failed.')};renderPanels()}}
+async function nRun(){const m=U.modal;if(!m||m.st!=='preview')return;const plan=m.plan;m.st='writing';m.done=0;m.res={created:0,updated:0,linked:0,fails:[]};renderPanels();
+ const mc=await mcpc();const R=m.res,now=Date.now();
+ const tick=()=>{m.done++;renderPanels()};
+ try{
+  for(const k of NORDER){const cfg=NV[k];
+   plan.link[k].forEach(x=>{x.it.notionPageId=x.pid;x.it.syncedAt=now;R.linked++});
+   const cr=plan.create[k];
+   for(let i=0;i<cr.length;i+=10){const batch=cr.slice(i,i+10);
+    const one=async(list)=>{const r=await mc.callTool('Notion','notion-create-pages',{parent:{type:'data_source_id',data_source_id:cfg.ds},allow_async:false,pages:list.map(x=>({properties:nProps(k,x.it)}))});const pg=(r.payload&&r.payload.pages)||[];if(pg.length!==list.length)throw{message:'Notion returned '+pg.length+' of '+list.length+' pages.'};list.forEach((x,j)=>{const id=(pg[j].id||'').replace(/-/g,'');x.it.notionPageId=id;x.it.syncedAt=Date.now();R.created++})};
+    try{await one(batch)}catch(e){for(const x of batch){try{await one([x])}catch(e2){R.fails.push({k,nm:x.nm,why:nErr(e2)})}}}
+    save();m.done+=batch.length;renderPanels()}
+   for(const x of plan.update[k]){try{await mc.callTool('Notion','notion-update-page',{page_id:dashed(x.it.notionPageId),command:'update_properties',allow_async:false,properties:nProps(k,x.it)});x.it.syncedAt=Date.now();R.updated++}catch(e){R.fails.push({k,nm:x.nm,why:nErr(e)})}tick()}
+   save()}
+  if(R.created+R.updated+R.linked>0){S.lastNotionSync=Date.now()}save();m.st='done'}
+ catch(e){R.fails.push({k:'',nm:'Sync stopped',why:nErr(e)});m.st='done'}
+ renderPanels();renderMain()}
+function syncModalHTML(){const m=U.modal;const hd='<div id="ov" data-a="modalx"></div><div class="modal" role="dialog" aria-label="Sync to Notion"><div class="hd"><h2>Sync to Notion</h2><button class="ib" data-a="modalx" aria-label="Close">✕</button></div>';
+ if(m.st==='reading')return hd+'<div class="empty">Reading your Notion databases…</div></div>';
+ if(m.st==='error')return hd+'<div class="empty">Couldn\'t sync — '+esc(m.msg)+' Nothing was synced.</div><div style="margin-top:12px"><button class="btn" data-a="modalx">Close</button></div></div>';
+ if(m.st==='writing')return hd+'<div class="empty">Writing to Notion… '+m.done+' of '+m.total+'. Please keep this open.</div></div>';
+ if(m.st==='done'){const r=m.res;return hd+'<div class="empty" style="border-style:solid">'+(r.created+r.updated+r.linked?'Done: created '+r.created+', updated '+r.updated+', linked '+r.linked+' already in Notion.':'Nothing was saved.')+'</div>'+(r.fails.length?'<h3 style="margin:14px 0 6px;font-size:13px;color:var(--orange)">Couldn\'t save ('+r.fails.length+')</h3>'+r.fails.slice(0,8).map(f=>'<div class="hint">'+esc(f.nm)+' — '+esc(f.why)+'</div>').join(''):'')+'<div style="margin-top:12px"><button class="btn pri" data-a="modalx">Close</button></div></div>'}
+ const p=m.plan;let rows='';NORDER.forEach(k=>{const c=p.create[k].length,u=p.update[k].length,l=p.link[k].length,s=p.skip[k].length;if(c+u+l+s===0)return;rows+='<div class="tk"><div class="bd" style="flex:1"><div class="ti">'+NV[k].label+'</div><div class="pj">'+p.create[k].slice(0,4).map(x=>esc(x.nm)).join(' · ')+(c>4?' …':'')+'</div></div><span class="hint">create '+c+' · update '+u+' · duplicates '+l+' · skip '+s+'</span></div>'});
+ return hd+(m.total||NORDER.some(k=>p.link[k].length)?'<div class="hint" style="margin-bottom:8px">Review, then press Yes. Nothing is deleted, and nothing syncs by itself.</div>'+rows+(m.ideas?'<div class="hint" style="margin-top:10px">'+m.ideas+' idea(s) and your Notes are not synced yet (target database not confirmed).</div>':'')+'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn" data-a="modalx">No</button><button class="btn pri" data-a="nyes">Yes, sync '+m.total+' item'+(m.total===1?'':'s')+'</button></div>':'<div class="empty">Everything is already in Notion. Nothing to sync.</div><div style="margin-top:12px"><button class="btn" data-a="modalx">Close</button></div>')+'</div>'}
+/* ---------- Atlas engine (Stage 3): sample + tools ---------- */
+let sampleFn=null,sampleTried=false;
+async function getSample(){if(sampleTried)return sampleFn;sampleTried=true;try{sampleFn=window.claude&&claude.use?await claude.use('sample'):null}catch(_){sampleFn=null}return sampleFn}
+const isD=s=>/^\d{4}-\d{2}-\d{2}$/.test(s||''),isT=s=>/^\d{2}:\d{2}$/.test(s||'');
+const norm=d=>d?(d.length>10?d:d+'T00:00'):'';
+function brief(t){return{id:t.id,title:t.title,status:t.status,due:t.due||null,project:t.project||null,postponed:t.postponed||0}}
+function offerCal(t,kind){if(!S.settings.notif.gcal)return;const b=$('#toastbox');clearTimeout(toastT);b.innerHTML='<div id="toast" role="alertdialog"><b>Google Calendar</b><span>'+(kind==='update'?'Update the calendar event for':'Add to Google Calendar:')+' “'+esc(t.title)+'” · '+fmtDate(t.due)+' '+timeOf(t.due)+'?<div style="display:flex;gap:8px;margin-top:8px"><button class="btn pri" data-a="offyes" data-id="'+t.id+'" data-kind="'+kind+'">Yes</button><button class="btn" data-a="offno">No</button></div></span></div>'}
+function pickTask(a){return find('tasks',a.id)||S.tasks.find(t=>isOpen(t)&&a.title&&sameTitle(t.title,a.title))}
+function atlasTools(ran){const done=(s)=>{ran.push(s);save();renderMain()};
+ return[
+ {name:'search_items',description:'Search the app data (tasks, projects, goals, ideas, follow-ups) by words. Always use before creating something that may already exist.',inputSchema:{type:'object',properties:{query:{type:'string'}},required:['query']},execute:async a=>{const q=toks(a.query),out=[];const hit=s=>{const T=toks(s);let n=0;q.forEach(w=>{if(T.has(w))n++});return q.size&&n>=Math.min(q.size,2)||(q.size===1&&n===1)};S.tasks.forEach(x=>{if(hit(x.title))out.push({type:'Task',...brief(x)})});S.projects.forEach(x=>{if(hit(x.name))out.push({type:'Project',id:x.id,title:x.name,status:x.status})});S.goals.forEach(x=>{if(hit(x.title))out.push({type:'Goal',id:x.id,title:x.title,status:x.status})});S.ideas.forEach(x=>{if(hit(x.title))out.push({type:'Idea',id:x.id,title:x.title})});S.followups.forEach(x=>{if(hit(x.name))out.push({type:'Follow-up',id:x.id,title:x.name,next:x.nextFollowUp||null})});return out.slice(0,8)}},
+ {name:'create_item',description:'Create ONE item. type: Task|Idea|Goal|Project|Follow-up|Note. due/time only if the user gave them (resolve relative dates to YYYY-MM-DD; time HH:MM, 24h). Never invent dates or priorities. Returns created:false if a duplicate exists.',inputSchema:{type:'object',properties:{type:{type:'string'},title:{type:'string'},due:{type:'string'},time:{type:'string'},priority:{type:'string',description:'UI, NUI, UN or NN, only if the user said'},project:{type:'string'},notes:{type:'string'}},required:['type','title']},execute:async a=>{const ty={task:'Task',idea:'Idea',goal:'Goal',project:'Project','follow-up':'Follow-up',followup:'Follow-up',note:'Note'}[String(a.type).toLowerCase()];if(!ty)return{created:false,reason:'unknown type'};const c=COLL[ty];const nm=String(a.title||'').trim();if(!nm)return{created:false,reason:'empty title'};
+   const dup=S[c].find(x=>(c!=='tasks'||isOpen(x))&&(c!=='projects'||x.status!=='Archived')&&sameTitle(titleOf(c,x),nm));if(dup)return{created:false,reason:'duplicate',existing:{id:dup.id,title:titleOf(c,dup),due:dup.due||null}};
+   if(a.due&&!isD(a.due))return{created:false,reason:'due must be YYYY-MM-DD'};if(a.time&&!isT(a.time))return{created:false,reason:'time must be HH:MM'};
+   const old=U.presetDue;U.presetDue=null;const it=createItem(ty,nm);U.presetDue=old;const warn=[];
+   if(ty==='Task'){if(a.due){it.due=a.due+(a.time?'T'+a.time:'');it.status='Scheduled'}if(a.priority&&PRIO[a.priority])it.priority=a.priority;if(a.project){const p=S.projects.find(x=>x.name.toLowerCase()===String(a.project).toLowerCase());if(p)it.project=p.name;else warn.push('project not found, left empty')}}
+   if(a.notes){if('notes' in it)it.notes=a.notes;else if('md' in it)it.md=a.notes}
+   touch(it);done('Added '+ty.toLowerCase()+' “'+nm+'”'+(it.due?' ('+fmtDate(it.due)+(timeOf(it.due)?' '+timeOf(it.due):'')+')':''));
+   if(ty==='Task'&&it.due){if(timeOf(it.due))offerCal(it,'create');else needTimeNote(it)}
+   return{created:true,id:it.id,title:nm,status:it.status||null,due:it.due||null,warnings:warn}}},
+ {name:'update_task',description:'Change title, priority (UI|NUI|UN|NN), project or notes of an existing task. Not for dates (use reschedule_task) or completion.',inputSchema:{type:'object',properties:{id:{type:'string'},title:{type:'string'},priority:{type:'string'},project:{type:'string'},notes:{type:'string'}},required:['id']},execute:async a=>{const t=pickTask(a);if(!t)return{ok:false,reason:'task not found'};if(a.title)t.title=String(a.title).trim()||t.title;if(a.priority&&PRIO[a.priority])t.priority=a.priority;if(a.project){const p=S.projects.find(x=>x.name.toLowerCase()===String(a.project).toLowerCase());if(p)t.project=p.name;else return{ok:false,reason:'project not found'}}if(a.notes!=null)t.notes=a.notes;touch(t);done('Updated task “'+t.title+'”');return{ok:true,task:brief(t)}}},
+ {name:'complete_task',description:'Mark a task Done.',inputSchema:{type:'object',properties:{id:{type:'string'},title:{type:'string'}}},execute:async a=>{const t=pickTask(a);if(!t)return{ok:false,reason:'task not found'};if(t.status==='Done')return{ok:true,note:'already done'};const was=t.status;t.status='Done';touch(t);done('Completed “'+t.title+'”');calAfterSave(t,t.due,t.title,was);return{ok:true,task:brief(t)}}},
+ {name:'reschedule_task',description:'Set a new due date (YYYY-MM-DD) and optional time (HH:MM) for a task. Moving later adds 1 to postponed automatically. Keeps the old time if no time is given.',inputSchema:{type:'object',properties:{id:{type:'string'},title:{type:'string'},date:{type:'string'},time:{type:'string'}},required:['date']},execute:async a=>{const t=pickTask(a);if(!t)return{ok:false,reason:'task not found'};if(!isD(a.date))return{ok:false,reason:'date must be YYYY-MM-DD'};if(a.time&&!isT(a.time))return{ok:false,reason:'time must be HH:MM'};const prev=t.due,tm=a.time||timeOf(prev),nu=a.date+(tm?'T'+tm:'');if(prev&&norm(nu)>norm(prev))t.postponed=(t.postponed||0)+1;t.due=nu;if(t.status==='Inbox')t.status='Scheduled';touch(t);done('Moved “'+t.title+'” to '+fmtDate(nu)+(tm?' '+tm:''));if(S.settings.notif.gcal){if(t.calEventId&&tm)offerCal(t,'update');else if(!t.calEventId&&tm)offerCal(t,'create');else if(!tm)needTimeNote(t)}return{ok:true,task:brief(t)}}},
+ {name:'list_today',description:'Open tasks due today plus today\'s Google Calendar events.',inputSchema:{type:'object',properties:{}},execute:async()=>{const td=todayStr();return{date:td,tasks:S.tasks.filter(t=>isOpen(t)&&t.due&&t.due.slice(0,10)===td).map(brief),events:eventsOn(td).map(e=>({title:e.title,start:e.start||'all day',end:e.end}))}}},
+ {name:'list_overdue',description:'Open tasks with a due date before today (max 10).',inputSchema:{type:'object',properties:{}},execute:async()=>{const td=todayStr(),a=S.tasks.filter(t=>isOpen(t)&&t.due&&t.due.slice(0,10)<td).sort((x,y)=>x.due<y.due?-1:1);return{count:a.length,tasks:a.slice(0,10).map(brief)}}},
+ {name:'list_postponed',description:'Tasks postponed 2 or more times, plus dated tasks older than 14 days.',inputSchema:{type:'object',properties:{}},execute:async()=>{const old=shiftDay(todayStr(),-14);return{tasks:S.tasks.filter(t=>isOpen(t)&&((t.postponed||0)>=2||(t.due&&t.due.slice(0,10)<old))).slice(0,10).map(brief)}}},
+ {name:'add_note',description:'Append a note to an existing task or project (targetId), or save a standalone Note when there is no target.',inputSchema:{type:'object',properties:{targetId:{type:'string'},text:{type:'string'},title:{type:'string'}},required:['text']},execute:async a=>{const tg=a.targetId&&(find('tasks',a.targetId)||find('projects',a.targetId));if(tg){tg.notes=(tg.notes?tg.notes+'\n':'')+a.text;touch(tg);done('Added a note to “'+titleOf(find('tasks',tg.id)?'tasks':'projects',tg)+'”');return{ok:true}}const it=createItem('Note',(a.title||a.text).slice(0,60));it.md=a.text;touch(it);done('Saved note “'+it.title+'”');return{ok:true,id:it.id}}},
+ {name:'calendar_list',description:'Google Calendar events for one day (YYYY-MM-DD). Read-only.',inputSchema:{type:'object',properties:{date:{type:'string'}},required:['date']},execute:async a=>{if(!S.settings.notif.gcal)return{connected:false};if(!isD(a.date))return{error:'date must be YYYY-MM-DD'};const y=a.date.split('-').map(Number);await fetchMonth(y[0],y[1]-1);return{events:eventsOn(a.date).map(e=>({title:e.title,start:e.start||'all day',end:e.end}))}}}]}
+function atlasContext(){const td=todayStr(),wd=new Intl.DateTimeFormat('en-US',{timeZone:RZ,weekday:'long'}).format(new Date());
+ const open=S.tasks.filter(isOpen).slice(0,40).map(t=>'['+t.id+'] '+t.title+(t.due?' | due '+t.due.replace('T',' '):'')+(t.project?' | '+t.project:'')+(t.postponed?' | postponed '+t.postponed:'')).join('\n')||'(none)';
+ return 'Today: '+wd+' '+td+' (Asia/Riyadh).\nOpen tasks:\n'+open+'\nProjects: '+(S.projects.filter(p=>p.status!=='Archived').map(p=>p.name).join('; ')||'(none)')+'\nGoals: '+(S.goals.filter(g=>g.status!=='Dropped').map(g=>g.title).join('; ')||'(none)')+'\nFollow-ups: '+(S.followups.map(f=>f.name).join('; ')||'(none)')}
+const ATLAS_RULES='You are Atlas, Ahmed\'s personal admin agent inside his app. Direct, short, no flattery, no filler. Loop: understand, classify (TASK, PROJECT, IDEA, GOAL, FOLLOW-UP, EVENT, NOTE, QUESTION; one message can be several), check app data, then create/update or ask, then confirm. Use search_items before creating; if it may already exist, do not create a duplicate (say so, or update). NEVER invent dates, times, people, amounts or priorities: if a date or time is missing and it changes the action, ask ONE short question. Resolve relative dates ("Thursday", "next week") to absolute YYYY-MM-DD using today\'s date and show them like "Thu Oct 22". Confirm in one line ("Added: Renew license — Oct 20.") and ONLY what a tool result shows succeeded; if a tool fails or returns created:false, say so. You cannot delete, cancel, archive or drop anything, and you cannot sync to Notion: tell him to use the item menus or the Settings button. Google Calendar changes need his Yes on a card the app shows; just say the card will appear. Add at most ONE proactive line at the end (overdue, postponed 3+, likely duplicate) and only if clearly useful. If the message is only a question about his data, answer from the tools, read-only.';
+function sampleErr(e){const c=e&&e.code,m=(e&&e.message)||'';if(c==='not_granted'||c==='consent_declined')return 'you did not allow Claude access for this page';if(/limit|usage|quota/i.test(c+' '+m))return 'your Claude usage limit is reached';return m.length>140?m.slice(0,137)+'…':(m||'the request failed')}
+async function atlasReply(c,text){const s=await getSample();
+ if(!s){c.messages.push({who:'atlas',text:'Atlas AI is not available in this view. I can still file it — pick a type:',chips:['Task','Idea','Note'],raw:text});saveChat();renderChat();return}
+ const msg={who:'atlas',text:'…'};c.messages.push(msg);renderChat();const ran=[];
+ const hist=c.messages.slice(0,-2).slice(-6).map(m=>(m.who==='me'?'Ahmed: ':'Atlas: ')+m.text).join('\n');
+ const input=ATLAS_RULES+'\n\n'+atlasContext()+(hist?'\n\nRecent conversation:\n'+hist:'')+'\n\nAhmed: '+text;
+ const long=text.length>220||/\b(plan|review|avoiding|weekly|prioriti[sz]e)\b/i.test(text);let raf=0;
+ try{const r=await s(input,{modelTier:long?'default':'quick',cache:false,tools:atlasTools(ran),onText:u=>{msg.text=u.text||'…';if(!raf){raf=1;setTimeout(()=>{raf=0;renderChat()},120)}}});
+  msg.text=(r&&r.text&&r.text.trim())||(ran.length?'Done: '+ran.join('; ')+'.':'Nothing to change.');}
+ catch(e){msg.text=ran.length?'Atlas stopped ('+sampleErr(e)+'). Done before that: '+ran.join('; ')+'.':'Atlas couldn\'t answer — '+sampleErr(e)+'. Nothing was changed.'}
+ saveChat();renderChat();renderMain()}
+/* ---------- full-screen / desktop widgets ---------- */
+function wconf(){const d={opacity:90,top:false,filter:'Today',size:14};try{return Object.assign(d,JSON.parse(localStorage.getItem('atlas_w_'+W)||'{}'))}catch(_){return d}}
+function wsave(c){try{localStorage.setItem('atlas_w_'+W,JSON.stringify(c))}catch(_){}}
+function wapply(c){fetch('/w/apply?kind='+W+'&opacity='+c.opacity+'&top='+(c.top?1:0)).catch(()=>{})}
+function applyWidgetLook(c){document.body.style.fontSize=c.size+'px'}
+function widgetsPanel(){return '<h3>DESKTOP WIDGETS</h3><div class="opts">'+['tasks','today','habits','timer'].map(k=>'<button data-a="wopen" data-k="'+k+'">Open '+WT[k]+'</button>').join('')+'</div><div class="opts" style="margin-top:8px"><button data-a="wall" data-v="hide">Hide all</button><button data-a="wall" data-v="show">Show all</button></div><div class="hint" style="margin-top:6px">Each widget has its own ⚙ for transparency, “over other apps”, filter and text size. Hidden widgets come back from here, the tray icon, or Ctrl+Alt+A.</div>'}
+function wcfgHTML(c){return '<div class="g" style="padding:12px;background:var(--inner);border-radius:14px;margin-bottom:10px"><div class="rg"><label><span>Window transparency</span><span>'+c.opacity+'%</span></label><input type="range" min="25" max="100" step="5" value="'+c.opacity+'" data-w="opacity" aria-label="Window opacity"></div><div class="rg" style="margin-top:8px"><label><span>Text size</span><span>'+c.size+' px</span></label><input type="range" min="11" max="22" step="1" value="'+c.size+'" data-w="size" aria-label="Text size"></div>'+
+ (W==='tasks'?'<div class="opts" style="margin-top:10px">'+['All','Today','Next','Inbox'].map(f=>'<button class="'+(c.filter===f?'on':'')+'" aria-pressed="'+(c.filter===f)+'" data-a="wfilter" data-v="'+f+'">'+f+'</button>').join('')+'</div>':'')+
+ '<div class="sw"><span>Over other apps<small>Stays on top of your windows</small></span><button role="switch" aria-checked="'+c.top+'" aria-label="Over other apps" class="'+(c.top?'on':'')+'" data-a="wtop"><i></i></button></div><div class="opts"><button data-a="wclose">Close widget</button></div></div>'}
+function renderWidget(){const c=wconf();U.tab=c.filter||'Today';applyWidgetLook(c);let b;if(W==='today')b=schedHTML();else if(W==='habits')b=habitsHTML();else if(W==='timer')b=timerHTML();else b=tasksHTML();
+ const nt=new Intl.DateTimeFormat('en-US',{timeZone:RZ,weekday:'short',month:'short',day:'numeric'}).format(new Date());
+ $('#main').innerHTML='<div class="wbar"><b>'+(WT[W]||'Tasks')+'</b><span class="hint">'+nt+'</span><button class="ib" aria-label="Customize widget" data-a="wcfg">⚙</button><button class="ib" aria-label="Hide widget" title="Hide (restore from the tray icon)" data-a="whide">–</button></div>'+(U.wcfg?wcfgHTML(c):'')+'<div>'+b+'</div>'}
+function startWidget(){document.body.classList.add('widget');ready=true;applyLook();const c=wconf();document.title='Atlas Widget - '+(WT[W]||'Tasks');applyWidgetLook(c);renderPanels();renderMain();setTimeout(()=>wapply(c),900);setTimeout(()=>wapply(c),3500)}
+/* ---------- logo, calendar export, updates ---------- */
+const LOGO='<div style="margin-bottom:6px" aria-hidden="true"><svg width="44" height="44" viewBox="-52 -52 104 104"><rect x="-52" y="-52" width="104" height="104" rx="22" fill="#0B0A1A" stroke="#2A2550"/><path d="M-28 30 L0 -32 L28 30" fill="none" stroke="#A78BFA" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M-15 12 l5 -9 l5 18 l5 -18 l5 18 l5 -18 l5 9" fill="none" stroke="#FFB25B" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
+const AV=(()=>{try{const m=document.querySelector('meta[name="atlas-version"]');return +(m&&m.content)||0}catch(_){return 0}})();
+const p2=n=>String(n).padStart(2,'0');
+const icsZ=ms=>{const x=new Date(ms);return x.getUTCFullYear()+p2(x.getUTCMonth()+1)+p2(x.getUTCDate())+'T'+p2(x.getUTCHours())+p2(x.getUTCMinutes())+p2(x.getUTCSeconds())+'Z'};
+const icsEsc=s=>String(s==null?'':s).replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
+const icsFold=l=>{if(l.length<=73)return l;const o=[l.slice(0,73)];let i=73;while(i<l.length){o.push(' '+l.slice(i,i+72));i+=72}return o.join('\r\n')};
+function buildICS(allDay){const lead=S.settings.notif.lead,stamp=icsZ(Date.now()),L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Atlas//Personal Admin//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Atlas','X-WR-TIMEZONE:Asia/Riyadh'];let n=0;
+ S.tasks.filter(t=>isOpen(t)&&t.due).forEach(t=>{const d=t.due.slice(0,10),tm=timeOf(t.due);if(!tm&&!allDay)return;n++;L.push('BEGIN:VEVENT','UID:'+t.id+'@atlas.local','DTSTAMP:'+stamp);
+  if(tm){const ms=Date.parse(d+'T'+tm+':00+03:00');L.push('DTSTART:'+icsZ(ms),'DTEND:'+icsZ(ms+1800000))}else L.push('DTSTART;VALUE=DATE:'+d.replace(/-/g,''),'DTEND;VALUE=DATE:'+shiftDay(d,1).replace(/-/g,''));
+  L.push('SUMMARY:'+icsEsc(t.title),'DESCRIPTION:'+icsEsc((t.project?'Project: '+t.project+'\n':'')+(PRIO[t.priority]||PRIO.NN).l+(t.notes?'\n'+t.notes:'')));
+  if(tm)L.push('BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(t.title),'TRIGGER:-PT'+lead+'M','END:VALARM');L.push('END:VEVENT')});
+ L.push('END:VCALENDAR');return{n,text:L.map(icsFold).join('\r\n')+'\r\n'}}
+async function saveText(fn,data,mime){let dl=null;try{dl=window.claude&&claude.use?await claude.use('downloads'):null}catch(_){}
+ if(dl){try{await dl.save({filename:fn,data});return fn}catch(e){const c=e&&e.code;if(c==='cancelled'||c==='declined')return ''}}
+ try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:mime||'text/plain'}));a.download=fn;a.click();return fn}catch(_){}
+ if(dl){try{await dl.save({filename:fn+'.txt',data});return fn+'.txt'}catch(_){}}return ''}
+function gcalLink(t){const d=t.due.slice(0,10),tm=timeOf(t.due);let dates;if(tm){dates=d.replace(/-/g,'')+'T'+tm.replace(':','')+'00/'+endOf(t.due).replace(/[-:]/g,'')}else dates=d.replace(/-/g,'')+'/'+shiftDay(d,1).replace(/-/g,'');
+ const u='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(t.title)+'&dates='+dates+'&ctz=Asia%2FRiyadh&details='+encodeURIComponent((t.project?'Project: '+t.project+'\n':'')+(t.notes||''));
+ return '<div style="margin-top:8px"><a class="btn" style="display:inline-flex;align-items:center;text-decoration:none" target="_blank" rel="noopener" href="'+u.replace(/&/g,'&amp;')+'">Add to Google Calendar ↗</a></div>'}
+function calExportPanel(){const n=S.settings.notif;return '<h3>EXPORT TO GOOGLE CALENDAR</h3><div class="sw"><span>Include dated tasks without a time<small>As all-day events. Off = they wait until you set a time.</small></span><button role="switch" aria-checked="'+!!n.icsall+'" aria-label="Include dated tasks without a time" class="'+(n.icsall?'on':'')+'" data-a="sw" data-k="icsall"><i></i></button></div><div class="opts"><button data-a="icsexport">Export calendar (.ics)</button></div><div class="hint" style="margin-top:6px">Then in Google Calendar: Settings → Import &amp; export → Import. Exporting again usually updates the same events. A single task can be added from its edit window.</div>'}
+function updatesPanel(){const u=U.upd||{};return '<h3>UPDATES</h3><div class="hint">This is version '+AV+(u.version&&u.version>AV?' · version '+u.version+' is ready, reload to use it':'')+'</div><label class="fld" style="margin-top:8px">Update source (link to Atlas.html)<input id="upd_url" value="'+esc(u.url||'')+'" placeholder="https://raw.githubusercontent.com/you/atlas-app/main/Atlas.html"></label><div class="opts"><button data-a="usave">Save &amp; check now</button>'+(u.version&&u.version>AV?'<button data-a="reload">Reload</button>':'')+'</div>'+(u.msg?'<div class="hint" style="margin-top:6px">'+esc(u.msg)+'</div>':'')}
+async function updFetch(path){try{const r=await fetch(path);U.upd=await r.json()}catch(_){U.upd={msg:'Could not reach the Atlas app on this PC.'}}if(U.settings)renderPanels()}
+function updPoll(){if(location.hostname!=='localhost')return;fetch('/u/status').then(r=>r.json()).then(u=>{U.upd=u;if(u.version>AV&&U.updShown!==u.version){U.updShown=u.version;const b=$('#toastbox');clearTimeout(toastT);b.innerHTML='<div id="toast" role="alertdialog"><b>Atlas update</b><span>Version '+u.version+' is ready.<div style="display:flex;gap:8px;margin-top:8px"><button class="btn pri" data-a="reload">Reload now</button><button class="btn" data-a="toastx">Later</button></div></span></div>'}}).catch(()=>{})}
+function tickClock(){const tm=new Intl.DateTimeFormat('en-US',{timeZone:RZ,hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date()).split(' ');const a=$('#clk');if(a){a.textContent=tm[0];$('#clkap').textContent=tm[1];const h=+rp().hour;$('#greet').textContent=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening'}}
+
+/* ---------- background / theme ---------- */
+function applyLook(){const s=S.settings,r=document.documentElement;r.setAttribute('data-theme',s.theme);r.style.setProperty('--card','rgba(var(--cardrgb),'+(1-s.transp/100).toFixed(2)+')');r.style.setProperty('--blur',s.blur+'px');
+ barBg();
+ const bg=$('#bg');let h='';const light=s.theme==='light';
+ if(light){bg.style.background='radial-gradient(1000px 600px at 85% -10%,#D9CFFF 0%,rgba(217,207,255,0) 60%),#EFEBFF'}
+ else if(s.bg==='violet')bg.style.background='radial-gradient(1200px 700px at 85% -10%,#2B1F66 0%,rgba(43,31,102,0) 60%),radial-gradient(900px 600px at 10% 110%,#23185A 0%,rgba(35,24,90,0) 60%),#0B0A1A';
+ else if(s.bg==='custom'&&U.bgUrl)bg.style.background='#0B0A1A url('+U.bgUrl+') center/cover no-repeat';
+ else bg.style.background='#0B0A1A';
+ if(!light&&s.bg==='mountains')h='<svg viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMax slice"><defs><linearGradient id="skyM" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#120C33"/><stop offset=".55" stop-color="#3A2475"/><stop offset="1" stop-color="#1A1240"/></linearGradient></defs><rect width="1440" height="1000" fill="url(#skyM)"/><circle cx="1150" cy="190" r="46" fill="#E9E2FF" opacity=".85"/><circle cx="200" cy="120" r="2" fill="#fff" opacity=".8"/><circle cx="420" cy="80" r="1.5" fill="#fff" opacity=".7"/><circle cx="640" cy="160" r="2" fill="#fff" opacity=".6"/><circle cx="900" cy="90" r="1.5" fill="#fff" opacity=".8"/><circle cx="1320" cy="300" r="2" fill="#fff" opacity=".6"/><circle cx="80" cy="320" r="1.5" fill="#fff" opacity=".7"/><path d="M0 620 L180 470 L320 560 L520 370 L700 520 L860 410 L1040 540 L1220 390 L1440 520 V1000 H0Z" fill="#33276E"/><path d="M0 730 L160 600 L300 680 L480 560 L640 700 L820 600 L1000 720 L1180 610 L1440 700 V1000 H0Z" fill="#221A52"/><path d="M0 850 L200 740 L400 820 L620 720 L860 840 L1100 760 L1300 830 L1440 790 V1000 H0Z" fill="#120E2E"/></svg>';
+ else if(!light&&s.bg==='dunes')h='<svg viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMax slice"><defs><linearGradient id="skyD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B1236"/><stop offset=".5" stop-color="#5A2B52"/><stop offset=".75" stop-color="#C0644A"/><stop offset="1" stop-color="#3A1A2C"/></linearGradient></defs><rect width="1440" height="1000" fill="url(#skyD)"/><circle cx="720" cy="660" r="80" fill="#F2A65A" opacity=".75"/><path d="M0 700 Q 300 560 640 680 T 1440 640 V1000 H0Z" fill="#6B3348"/><path d="M0 800 Q 400 680 800 790 T 1440 760 V1000 H0Z" fill="#3E1E35"/><path d="M0 900 Q 500 800 1000 900 T 1440 880 V1000 H0Z" fill="#1E1020"/></svg>';
+ bg.innerHTML=h}
+
+/* ---------- chat ---------- */
+function barBg(){const s=S.settings,a=U.chatOpen?(1-s.chatTransp/100):0.2;$('#bar').style.background='rgba(var(--barrgb),'+a.toFixed(2)+')'}
+function updateBar(){const t=TYPES.find(x=>x.l===U.type);const b=$('#typeBtn');b.innerHTML='<span class="dot" style="background:'+t.c+'"></span>'+esc(U.type)+' <span style="font-size:10px">▾</span>';b.setAttribute('aria-expanded',U.typeMenu);b.setAttribute('aria-label','Capture type: '+U.type);$('#bar').classList.toggle('open',U.chatOpen);barBg();$('#msg').placeholder=(U.presetDue&&U.type==='Task')?'Task for '+fmtDate(U.presetDue)+'…':'Ask Atlas anything…';
+ let m=document.getElementById('tm');if(U.typeMenu){if(!m){m=document.createElement('div');m.id='tm';b.parentNode.appendChild(m)}m.innerHTML=TYPES.map(o=>'<button data-a="pickt" data-v="'+o.l+'"><span class="dot" style="background:'+o.c+'"></span>'+o.l+'<small>'+o.h+'</small></button>').join('')}else if(m)m.remove()}
+function curChat(){if(!U.chat){U.chat={id:uid(),title:'New chat',type:U.type,messages:[],updated:Date.now(),fresh:true}}return U.chat}
+function saveChat(){const c=U.chat;if(!c||!c.messages.length)return;c.updated=Date.now();c.fresh=false;const i=S.chats.findIndex(x=>x.id===c.id);if(i<0)S.chats.unshift(c);else S.chats[i]=c;S.chats=S.chats.slice(0,200);save()}
+function renderChat(){const L=$('#chatlayer');if(!U.chatOpen){L.innerHTML='';return}
+ const c=curChat();const rc=S.chats.filter(x=>!U.chat||x.id!==U.chat.id).slice(0,3);
+ L.innerHTML='<button id="dim" aria-label="Close chat and return to the dashboard" data-a="chatx" style="background:rgba(6,5,16,'+(.6*(1-S.settings.chatTransp/70)).toFixed(2)+');backdrop-filter:blur('+Math.max(0,Math.round(4*(1-S.settings.chatTransp/70)))+'px)"></button>'+
+ '<section id="pop" aria-label="Atlas chat"><div class="ph"><b>'+esc(c.title)+'</b><span>Click outside to close · saved in the app</span></div>'+
+ (c.messages.length?c.messages.map((m,mi)=>'<div class="m '+m.who+'"><div>'+esc(m.text)+(m.chips&&!m.done?'<div class="chips">'+m.chips.map(t=>'<button data-a="chip" data-mi="'+mi+'" data-t="'+t+'">Save as '+t+'</button>').join('')+'</div>':'')+'</div></div>').join(''):'<div style="color:#A9A3C9;font-size:14px">Ask a question, or pick a type on the left (Task, Idea, Goal…) and Atlas files it for you.</div>')+'</section>'+
+ '<div id="rc"><span class="l">RECENT CHATS</span>'+rc.map(r=>'<button class="r" data-a="resume" data-id="'+r.id+'"><b>'+esc(r.title)+'</b><small>'+r.type+' · '+ago(r.updated)+'</small></button>').join('')+'<a href="#" data-a="archive" style="font-size:12.5px;margin-left:auto">All chats (archive)</a></div>';
+ const p=$('#pop');if(p)p.scrollTop=p.scrollHeight}
+function openChat(type){if(type){U.type=type}if(!U.chatOpen){U.chatOpen=true}updateBar();renderChat();$('#msg').focus()}
+function closeChat(){saveChat();U.chatOpen=false;U.chat=null;U.typeMenu=false;U.presetDue=null;updateBar();renderChat();$('#msg').blur()}
+function send(){const inp=$('#msg'),text=inp.value.trim();if(!text)return;inp.value='';const c=curChat();U.chatOpen=true;if(c.fresh||c.title==='New chat')c.title=text.length>48?text.slice(0,45)+'…':text;c.type=U.type;c.messages.push({who:'me',text});
+ if(U.type==='Auto'){atlasReply(c,text)}
+ else{const it=createItem(U.type,text);needTimeNote(it);c.messages.push({who:'atlas',text:reply(U.type,text,it)});renderMain()}
+ saveChat();updateBar();renderChat()}
+
+/* ---------- modal (open item) ---------- */
+const OPT={status:['Inbox','Next','Scheduled','Waiting','Done','Cancelled'],pri:['UI','NUI','UN','NN'],gst:['Active','Paused','Achieved','Dropped'],pst:['On','Off','Archived'],kind:['Business','Learning','Personal','Creative','Tech/AI','Other'],stage:['Captured','Researching','Plan ready','Approved','Parked','Killed','Converted']};
+function sel(id,opts,val,lab){return '<select id="'+id+'">'+opts.map(o=>'<option value="'+esc(o)+'"'+(o===val?' selected':'')+'>'+esc(lab?lab(o):o)+'</option>').join('')+'</select>'}
+const F=(l,h)=>'<label class="fld">'+l+h+'</label>';
+function modalHTML(){const m=U.modal;if(!m)return '';
+ if(m.kind==='sync')return syncModalHTML();
+ if(m.kind==='archive'){return '<div id="ov" data-a="modalx"></div><div class="modal" role="dialog" aria-label="Chat archive"><div class="hd"><h2>All chats</h2><button class="ib" data-a="modalx" aria-label="Close">✕</button></div>'+(S.chats.length?S.chats.map(r=>'<button class="li" data-a="resume" data-id="'+r.id+'"><span class="tx"><b>'+esc(r.title)+'</b><small>'+r.type+' · '+ago(r.updated)+' · '+r.messages.length+' messages</small></span></button>').join(''):'<div class="empty">No archived chats yet.</div>')+'</div>'}
+ if(m.kind==='ideas'){const a=S.ideas.concat(S.notes);return '<div id="ov" data-a="modalx"></div><div class="modal" role="dialog" aria-label="Ideas and notes"><div class="hd"><h2>Ideas &amp; Notes</h2><button class="ib" data-a="modalx" aria-label="Close">✕</button></div>'+(a.length?a.sort((x,y)=>y.updated-x.updated).map(i=>liItem(S.ideas.includes(i)?'ideas':'notes',i,(S.ideas.includes(i)?'Idea · '+i.stage:'Note')+' · '+ago(i.updated))).join(''):'<div class="empty">No ideas or notes yet. Pick “Idea” in the chat bar.</div>')+'</div>'}
+ const [c,id]=m.k.split(':'),it=find(c,id);if(!it)return '';let h='';
+ if(c==='tasks'){const pr=S.projects.filter(p=>p.status!=='Archived').map(p=>p.name);h=F('Title','<input id="f_title" value="'+esc(it.title)+'">')+'<div class="two">'+F('Status',sel('f_status',OPT.status,it.status))+F('Priority',sel('f_priority',OPT.pri,it.priority,o=>PRIO[o].l))+'</div><div class="two">'+F('Due date','<input id="f_date" type="date" value="'+esc((it.due||'').slice(0,10))+'">')+F('Time (optional)','<input id="f_time" type="time" value="'+esc(timeOf(it.due))+'">')+'</div>'+F('Project',sel('f_project',['']. concat(pr),it.project,o=>o||'— none —'))+F('Notes','<textarea id="f_notes">'+esc(it.notes||'')+'</textarea>')+'<div class="hint">Postponed '+(it.postponed||0)+'× · dates are Asia/Riyadh</div>'+calBits(it)}
+ else if(c==='goals')h=F('Goal','<input id="f_title" value="'+esc(it.title)+'">')+'<div class="two">'+F('Status',sel('f_status',OPT.gst,it.status))+F('Target date','<input id="f_deadline" type="date" value="'+esc(it.deadline||'')+'">')+'</div><div class="two">'+F('Manual % (used only if no tasks are linked)','<input id="f_progress" type="number" min="0" max="100" placeholder="[unknown]" value="'+(it.progress==null?'':Math.round(it.progress*100))+'">')+F('Area','<input id="f_area" value="'+esc(it.area||'')+'">')+'</div>'+F('Notes','<textarea id="f_notes">'+esc(it.notes||'')+'</textarea>');
+ else if(c==='projects')h=F('Name','<input id="f_name" value="'+esc(it.name)+'">')+F('Objective','<input id="f_objective" value="'+esc(it.objective||'')+'">')+'<div class="two">'+F('Status',sel('f_status',OPT.pst,it.status))+F('Deadline','<input id="f_deadline" type="date" value="'+esc(it.deadline||'')+'">')+'</div>'+F('Next action','<input id="f_nextAction" value="'+esc(it.nextAction||'')+'">')+F('Goal (finished tasks count toward it)',sel('f_goal',[''].concat(S.goals.filter(g=>g.status!=='Dropped').map(g=>g.id)),it.goal||'',o=>o?(S.goals.find(g=>g.id===o)||{}).title:'— none —'))+F('Notes','<textarea id="f_notes">'+esc(it.notes||'')+'</textarea>');
+ else if(c==='habits')h=F('Habit','<input id="f_name" value="'+esc(it.name)+'">')+F('Colour','<input id="f_color" type="color" value="'+esc(it.color)+'">');
+ else if(c==='ideas')h=F('Title','<input id="f_title" value="'+esc(it.title)+'">')+'<div class="two">'+F('Category',sel('f_kind',OPT.kind,it.kind))+F('Stage',sel('f_stage',OPT.stage,it.stage))+'</div>'+F('Tags','<input id="f_tags" value="'+esc(it.tags||'')+'">')+F('Notes','<textarea id="f_md">'+esc(it.md||'')+'</textarea>');
+ else if(c==='notes')h=F('Title','<input id="f_title" value="'+esc(it.title)+'">')+F('Tags','<input id="f_tags" value="'+esc(it.tags||'')+'">')+F('Note','<textarea id="f_md">'+esc(it.md||'')+'</textarea>');
+ else if(c==='followups')h=F('Name','<input id="f_name" value="'+esc(it.name)+'">')+F('Context','<input id="f_context" value="'+esc(it.context||'')+'">')+'<div class="two">'+F('Last interaction','<input id="f_lastInteraction" type="date" value="'+esc(it.lastInteraction||'')+'">')+F('Next follow-up','<input id="f_nextFollowUp" type="date" value="'+esc(it.nextFollowUp||'')+'">')+'</div>'+F('Notes','<textarea id="f_notes">'+esc(it.notes||'')+'</textarea>');
+ const cancel=c==='tasks'?(m.confirm?'<span class="hint" style="margin-right:6px">Cancel this task?</span><button class="btn dng" data-a="mcancelyes">Yes</button><button class="btn" data-a="mcancelno">No</button>':'<button class="btn dng" data-a="mcancel">Cancel task…</button>'):'';
+ return '<div id="ov" data-a="modalx"></div><div class="modal" role="dialog" aria-label="'+TYPEOF[c]+'"><div class="hd"><h2>'+TYPEOF[c]+'</h2><button class="ib" data-a="modalx" aria-label="Close">✕</button></div>'+h+'<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:6px"><div>'+cancel+'</div><div style="display:flex;gap:8px"><button class="btn" data-a="modalx">Close</button><button class="btn pri" data-a="msave">Save</button></div></div></div>'}
+const gv=id=>{const e=document.getElementById(id);return e?e.value:undefined};
+function saveModal(){const m=U.modal;if(!m||!m.k)return;const [c,id]=m.k.split(':'),it=find(c,id);if(!it)return;
+ if(c==='tasks'){const pd=it.due,pt=it.title,pst=it.status;const t=gv('f_title').trim();if(t)it.title=t;const nd=gv('f_date'),tm=gv('f_time');const nu=nd?(nd+(tm?'T'+tm:'')):'';const norm=x=>x?(x.length>10?x:x+'T00:00'):'';
+  if(it.due&&nu&&norm(nu)>norm(it.due))it.postponed=(it.postponed||0)+1;it.due=nu;let st=gv('f_status');if(st==='Inbox'&&nu)st='Scheduled';it.status=st;it.priority=gv('f_priority');it.project=gv('f_project');it.notes=gv('f_notes');setTimeout(()=>calAfterSave(it,pd,pt,pst),0)}
+ else if(c==='goals'){const t=gv('f_title').trim();if(t)it.title=t;it.status=gv('f_status');it.deadline=gv('f_deadline');const p=gv('f_progress');it.progress=p===''?null:Math.min(100,Math.max(0,+p))/100;it.area=gv('f_area');it.notes=gv('f_notes')}
+ else if(c==='projects'){const t=gv('f_name').trim();if(t&&t!==it.name){S.tasks.forEach(x=>{if(x.project===it.name)x.project=t});it.name=t}it.objective=gv('f_objective');it.goal=gv('f_goal')||'';it.status=gv('f_status');it.deadline=gv('f_deadline');it.nextAction=gv('f_nextAction');it.notes=gv('f_notes')}
+ else if(c==='habits'){const t=gv('f_name').trim();if(t)it.name=t;it.color=gv('f_color')}
+ else if(c==='ideas'){const t=gv('f_title').trim();if(t)it.title=t;it.kind=gv('f_kind');it.stage=gv('f_stage');it.tags=gv('f_tags');it.md=gv('f_md')}
+ else if(c==='notes'){const t=gv('f_title').trim();if(t)it.title=t;it.tags=gv('f_tags');it.md=gv('f_md')}
+ else if(c==='followups'){const t=gv('f_name').trim();if(t)it.name=t;it.context=gv('f_context');it.lastInteraction=gv('f_lastInteraction');it.nextFollowUp=gv('f_nextFollowUp');it.notes=gv('f_notes')}
+ touch(it);save();U.modal=null;renderAll()}
+
+/* ---------- settings panel ---------- */
+function settingsHTML(){const s=S.settings,n=s.notif;
+ const sw=(k,l,h,on,dis)=>'<div class="sw"><span>'+l+'<small>'+h+'</small></span><button role="switch" aria-checked="'+on+'" aria-label="'+l+'" class="'+(on?'on':'')+'" '+(dis?'disabled':'')+' data-a="sw" data-k="'+k+'"><i></i></button></div>';
+ const bgs=[['mountains','Night Mountains'],['dunes','Desert Dusk'],['violet','Deep Violet'],['custom','Your photo']];
+ return '<div class="panel" role="dialog" aria-labelledby="set-h"><div class="hd"><h2 id="set-h">Settings</h2><button class="ib" aria-label="Close settings" data-a="settings">✕</button></div>'+
+ '<h3>BACKGROUND</h3><div class="opts">'+bgs.map(b=>'<button class="'+(s.bg===b[0]?'on':'')+'" aria-pressed="'+(s.bg===b[0])+'" data-a="bg" data-v="'+b[0]+'">'+b[1]+'</button>').join('')+'</div>'+(s.bg==='custom'?'<div style="margin-top:8px"><input type="file" id="photo" accept="image/*"><div class="hint">Stored in this browser only.</div></div>':'')+
+ '<div class="rg" style="margin-top:14px"><label for="r_t"><span>Widget transparency</span><span>'+s.transp+'%</span></label><input id="r_t" data-r="transp" type="range" min="5" max="80" step="5" value="'+s.transp+'"></div>'+
+ '<div class="rg" style="margin-top:10px"><label for="r_b"><span>Background blur behind widgets</span><span>'+s.blur+' px</span></label><input id="r_b" data-r="blur" type="range" min="0" max="24" step="2" value="'+s.blur+'"></div>'+
+ '<div class="rg" style="margin-top:10px"><label for="r_c"><span>Chat bar transparency (after you click or type)</span><span>'+s.chatTransp+'%</span></label><input id="r_c" data-r="chatTransp" type="range" min="0" max="80" step="5" value="'+s.chatTransp+'"><div class="hint" style="margin-top:4px">The idle bar always stays 80% transparent; this value applies once you click or type in it.</div></div>'+
+ '<h3>NOTIFICATIONS &amp; REMINDERS</h3>'+sw('desktop','Desktop notifications','Blocked in this embedded view; used only if the browser allows it',n.desktop)+sw('sound','Sound / buzz','Plays with every in-app reminder',n.sound)+
+ '<div class="sw"><span>Remind me before</span><div class="opts">'+[5,15,30,60].map(m=>'<button class="'+(n.lead===m?'on':'')+'" aria-pressed="'+(n.lead===m)+'" data-a="lead" data-v="'+m+'">'+(m===60?'1h':m+'m')+'</button>').join('')+'</div></div><button class="btn" data-a="testnotif">Send a test reminder</button>'+
+ '<h3>CONNECTIONS</h3><div class="sw"><span>Notion<small>'+esc(notionStatus())+'</small></span><button class="btn" data-a="nsync">Sync to Notion</button></div>'+
+ '<div class="sw"><span>Google Calendar<small>'+esc(gcStatus())+'</small></span><button role="switch" aria-checked="'+n.gcal+'" aria-label="Google Calendar" class="'+(n.gcal?'on':'')+'" data-a="gcal"><i></i></button></div>'+(n.gcal?'<div class="opts" style="margin-bottom:6px"><button data-a="gcsync">Refresh events</button></div>':'')+
+ '<div class="hint" style="margin:6px 0 0">'+(window.claude?'Atlas chat uses your Claude plan (no API key) and counts against Settings → Usage. Only “Auto” messages use it; picking a type files directly and costs nothing.':'Offline copy: Calendar, Notion and Atlas AI only work in the claude.ai version. Everything else works here.')+'</div>'+
+ (location.hostname==='localhost'?widgetsPanel()+updatesPanel():'')+calExportPanel()+'<h3>YOUR DATA</h3><div class="opts"><button data-a="export">Export JSON backup</button><button data-a="importpick">Import backup…</button></div><input type="file" id="imp" accept="application/json,.json" style="display:none">'+
+ (U.importPending?'<div class="empty" style="margin-top:10px">Replace ALL current data with this backup ('+U.importPending.tasks.length+' tasks, '+U.importPending.goals.length+' goals)?<div style="display:flex;gap:8px;margin-top:8px"><button class="btn dng" data-a="importyes">Yes, replace</button><button class="btn" data-a="importno">No</button></div></div>':'')+
+ '<div class="hint" style="margin-top:10px">Data lives in this browser (and a private backup copy in your Claude account). Export regularly.</div></div>'}
+
+function renderPanels(){$('#panels').innerHTML=(U.settings?settingsHTML():'')+modalHTML()}
+function renderAll(){renderNav();renderMain();renderPanels();updateBar();applyLook()}
+
+/* ---------- actions ---------- */
+const A={
+nav(d){if(d.to==='ideas'){U.modal={kind:'ideas'};renderPanels();return}if(U.day||U.proj){U.day=null;U.proj=null;renderMain()}const e=d.to==='top'?document.body:document.getElementById(d.to);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},
+settings(){U.settings=!U.settings;renderNav();renderPanels();if(U.settings&&location.hostname==='localhost')updFetch('/u/status')},
+usave(){const el=document.getElementById('upd_url');updFetch('/u/seturl?url='+encodeURIComponent((el&&el.value||'').trim()))},
+reload(){try{location.reload()}catch(_){}},
+async icsexport(){const r=buildICS(!!S.settings.notif.icsall);if(!r.n){toast('No dated tasks with a time to export. Nothing was saved.','Calendar export');return}const fn=await saveText('atlas-calendar-'+todayStr()+'.ics',r.text,'text/calendar');if(fn)toast('Saved '+fn+' with '+r.n+' event'+(r.n>1?'s':'')+(fn.endsWith('.txt')?'. Rename it to .ics before importing.':'. Import it in Google Calendar.'),'Calendar export');else toast('Could not save the file here. Nothing was exported.','Calendar export')},
+day(d){U.day=d.d;U.proj=null;renderMain();ensureDay(d.d);window.scrollTo(0,0)},
+dayback(){U.day=null;renderMain()},
+proj(d){U.proj=d.id;U.day=null;U.menu=null;U.confirm=false;renderMain();window.scrollTo(0,0)},
+projback(){U.proj=null;renderMain()},
+projadd(){const p=find('projects',U.proj);if(!p)return;const inp=document.getElementById('pt_title'),title=(inp&&inp.value||'').trim();if(!title){if(inp)inp.focus();return}const dt=gv('pt_date')||'';const it=createItem('Task',title);it.project=p.name;it.due=dt;it.status=dt?'Scheduled':'Inbox';touch(it);save();needTimeNote(it);renderMain();const n=document.getElementById('pt_title');if(n)n.focus()},
+dayshift(d){U.day=shiftDay(U.day,+d.d);renderMain();ensureDay(U.day)},
+dayadd(){U.presetDue=U.day;openChat('Task')},
+async gcal(){const n=S.settings.notif;if(n.gcal){n.gcal=false;save();U.calStatus=null;renderPanels();renderMain();return}
+ U.calStatus='testing';renderPanels();const mc=await mcpc();if(!mc){U.calStatus='Not available here. Open Atlas inside claude.ai.';renderPanels();return}
+ try{await mc.callTool(GC,'list_events',{pageSize:1,timeZone:RZ});n.gcal=true;U.calStatus='ok';U.calAt=Date.now();save();renderPanels();renderMain();const k=monthOf(0);fetchMonth(k.y,k.m,true);toast('Google Calendar connected. Tasks with a date and a time now become events.','Google Calendar')}catch(e){U.calStatus=calErr(e);renderPanels()}},
+gcsync(){const k=monthOf(U.mo);fetchMonth(k.y,k.m,true);toast('Refreshing events…','Google Calendar')},
+ntadd(d){const t=find('tasks',d.id);if(!t)return;const el=document.getElementById('nt_'+d.id),tm=el&&el.value;if(!tm){toast('Pick a time first.','Add a time');return}const pd=t.due;t.due=t.due.slice(0,10)+'T'+tm;touch(t);save();renderMain();calAfterSave(t,pd,t.title,t.status)},
+ntskip(d){const t=find('tasks',d.id);if(t){t.calSkip=true;save();renderMain()}},
+mcal(){const [c,id]=U.modal.k.split(':'),t=find(c,id);if(t){calCreate(t);U.modal=null;renderPanels()}},
+askyes(d){const t=find('tasks',d.id);$('#toastbox').innerHTML='';if(t)calDelete(t)},
+askno(d){const t=find('tasks',d.id);if(t){t.calKept=true;save()}$('#toastbox').innerHTML=''},
+fs(){const d=document,e=d.documentElement,msg=()=>toast('Full screen is blocked in this view. In the Atlas app window press F11.','Full screen');try{if(d.fullscreenElement){d.exitFullscreen()}else if(e.requestFullscreen){const p=e.requestFullscreen();if(p&&p.catch)p.catch(msg)}else msg()}catch(_){msg()}},
+wopen(d){fetch('/w/open?kind='+d.k).catch(()=>{})},
+wall(d){fetch('/w/'+d.v+'all').catch(()=>{})},
+wcfg(){U.wcfg=!U.wcfg;renderMain()},
+wfilter(d){const c=wconf();c.filter=d.v;wsave(c);renderMain()},
+wtop(){const c=wconf();c.top=!c.top;wsave(c);wapply(c);renderMain()},
+whide(){fetch('/w/hide?kind='+W).catch(()=>{})},
+wclose(){fetch('/w/close?kind='+W).catch(()=>{});setTimeout(()=>{try{window.close()}catch(_){}},300)},
+nsync(){nStart()},
+nyes(){nRun()},
+offyes(d){const t=find('tasks',d.id);$('#toastbox').innerHTML='';if(t){if(d.kind==='update')calUpdate(t);else calCreate(t)}},
+offno(){$('#toastbox').innerHTML=''},
+theme(){S.settings.theme=S.settings.theme==='light'?'dark':'light';save();applyLook()},
+mo(d){U.mo+=+d.d;renderMain();const k=monthOf(U.mo);fetchMonth(k.y,k.m)},
+tab(d){U.tab=d.v;renderMain()},
+done(d){const t=find('tasks',d.id);if(!t)return;const was=t.status;t.status=t.status==='Done'?(t.due?'Scheduled':'Inbox'):'Done';touch(t);save();renderMain();if(t.status==='Done')calAfterSave(t,t.due,t.title,was)},
+hab(d){const h=find('habits',d.id);if(!h)return;if(h.days[d.d])delete h.days[d.d];else h.days[d.d]=true;touch(h);save();renderMain()},
+habok(){S.settings.habitsConfirmed=true;save();renderMain()},
+add(d){openChat(d.t)},
+menu(d){if(U.menu===d.k){U.menu=null}else U.menu=d.k;U.confirm=false;renderMain()},
+menux(){U.menu=null;U.confirm=false;renderMain()},
+ask(){U.confirm=true;renderMain()},
+do(d){const [c,id]=d.k.split(':'),it=find(c,id);if(it){if(c==='goals')it.status='Dropped';else if(c==='projects')it.status='Archived';else if(c==='habits')it.removed=true;touch(it);save()}U.menu=null;U.confirm=false;renderMain()},
+open(d){const k=d.k;U.menu=null;U.confirm=false;U.modal={k,confirm:false};renderMain();renderPanels()},
+modalx(){if(U.modal&&U.modal.kind==='sync'&&U.modal.st==='writing')return;U.modal=null;renderPanels()},
+msave(){saveModal()},
+mcancel(){U.modal.confirm=true;renderPanels()},
+mcancelno(){U.modal.confirm=false;renderPanels()},
+mcancelyes(){const [c,id]=U.modal.k.split(':'),t=find(c,id);if(t){t.status='Cancelled';touch(t);save();calAfterSave(t,t.due,t.title,'x')}U.modal=null;renderAll()},
+tmtoggle(){if(U.tm.rem===0){U.tm.rem=1500;U.tm.running=true}else U.tm.running=!U.tm.running;paintTimer()},
+tmreset(){U.tm={rem:1500,running:false};paintTimer()},
+typemenu(){U.typeMenu=!U.typeMenu;updateBar()},
+pickt(d){U.type=d.v;U.typeMenu=false;updateBar();$('#msg').focus()},
+send(){if(!U.chatOpen&&!$('#msg').value.trim()){openChat();return}send()},
+chatx(){closeChat()},
+chip(d){const c=curChat(),m=c.messages[+d.mi];if(!m)return;m.done=true;const it=createItem(d.t,m.raw);c.messages.push({who:'atlas',text:reply(d.t,m.raw,it)});saveChat();renderMain();renderChat()},
+resume(d){const r=S.chats.find(x=>x.id===d.id);if(!r)return;saveChat();U.chat=r;U.modal=null;U.chatOpen=true;renderPanels();updateBar();renderChat()},
+archive(){U.modal={kind:'archive'};renderPanels()},
+toastx(){$('#toastbox').innerHTML=''},
+bg(d){S.settings.bg=d.v;save();applyLook();renderPanels();if(d.v==='custom')idb('r').then(u=>{if(u){U.bgUrl=u;applyLook()}}).catch(()=>{})},
+sw(d){S.settings.notif[d.k]=!S.settings.notif[d.k];if(d.k==='desktop'&&S.settings.notif.desktop&&window.Notification&&Notification.permission==='default'){try{Notification.requestPermission()}catch(_){}}save();renderPanels()},
+lead(d){S.settings.notif.lead=+d.v;save();renderPanels()},
+testnotif(){if(window.Notification&&Notification.permission==='default'&&S.settings.notif.desktop){try{Notification.requestPermission()}catch(_){}}const l=S.settings.notif.lead;toast('Test reminder — nothing is due. Real reminders fire '+(l===60?'1 hour':l+' min')+' before dated tasks (Stage 2).','Atlas reminder',true)},
+async export(){const data=JSON.stringify(S,null,1),fn='atlas-backup-'+todayStr()+'.json';try{const dl=window.claude&&await claude.use('downloads');if(!dl)throw 0;await dl.save({filename:fn,data});toast('Backup ready: '+fn,'Export')}catch(e){const code=e&&e.code;if(code==='cancelled'||code==='declined')return;try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=fn;a.click();toast('Backup downloaded: '+fn,'Export')}catch(_){toast('Could not save the backup here. Copy your data from a normal browser tab.','Export')}}},
+importpick(){const i=$('#imp');if(i)i.click()},
+importyes(){S=U.importPending;migrate();U.importPending=null;ready=true;save();renderAll();toast('Backup restored.','Import')},
+importno(){U.importPending=null;renderPanels()}
+};
+function paintTimer(){const a=$('#tmTxt');if(a){a.textContent=tmText();$('#tmLbl').textContent=tmLbl();const r=$('#tmRing');if(r)r.setAttribute('stroke-dashoffset',(CIRC*(1-U.tm.rem/1500)).toFixed(1))}}
+
+document.addEventListener('click',e=>{
+ const el=e.target.closest('[data-a]');
+ if(U.menu&&!e.target.closest('.menu')&&!(el&&el.dataset.a==='menu')){U.menu=null;U.confirm=false;renderMain()}
+ if(U.typeMenu&&!e.target.closest('#tm')&&!(el&&el.dataset.a==='typemenu')){U.typeMenu=false;updateBar()}
+ if(!el)return;e.preventDefault();const f=A[el.dataset.a];if(f)f(el.dataset)});
+document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.w;if(!k)return;const c=wconf();c[k]=+e.target.value;wsave(c);applyWidgetLook(c);if(k==='opacity')wapply(c);const l=e.target.previousElementSibling;if(l&&l.lastElementChild)l.lastElementChild.textContent=e.target.value+(k==='size'?' px':'%')});
+window.addEventListener('storage',e=>{if(e.key==='atlas_v1'&&e.newValue){try{const o=JSON.parse(e.newValue);if(o&&Array.isArray(o.tasks)){S=o;renderMain()}}catch(_){}}});
+document.addEventListener('input',e=>{const r=e.target.dataset&&e.target.dataset.r;if(r){S.settings[r]=+e.target.value;save();applyLook();const l=e.target.previousElementSibling;if(l)l.lastElementChild.textContent=e.target.value+(r==='blur'?' px':'%')}});
+document.addEventListener('change',e=>{
+ if(e.target.id==='pj_goal'){const p=find('projects',U.proj);if(p){p.goal=e.target.value;touch(p);save();renderMain()}return}
+ if(e.target.id==='photo'&&e.target.files[0]){const fr=new FileReader();fr.onload=()=>{U.bgUrl=fr.result;applyLook();idb('w',fr.result).catch(()=>toast('Photo shown, but could not be saved for next time.','Background'))};fr.readAsDataURL(e.target.files[0])}
+ if(e.target.id==='imp'&&e.target.files[0]){const fr=new FileReader();fr.onload=()=>{try{const o=JSON.parse(fr.result);if(!o||!Array.isArray(o.tasks)||!Array.isArray(o.goals)||!o.settings)throw 0;['projects','habits','ideas','notes','followups','chats'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[]});U.importPending=o;renderPanels()}catch(_){toast('That file is not an Atlas backup.','Import')}};fr.readAsText(e.target.files[0])}});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){if(U.modal){if(!(U.modal.kind==='sync'&&U.modal.st==='writing')){U.modal=null;renderPanels()}}else if(U.settings){A.settings()}else if(U.typeMenu){U.typeMenu=false;updateBar()}else if(U.chatOpen)closeChat();else if(U.proj||U.day){U.proj=null;U.day=null;renderMain()}return}
+ if(e.key==='Enter'&&e.target.id==='msg'){e.preventDefault();send()}if(e.key==='Enter'&&e.target.id==='pt_title'){e.preventDefault();A.projadd()}});
+$('#msg').addEventListener('focus',()=>{if(!U.chatOpen)openChat()});
+
+/* ---------- boot ---------- */
+setInterval(()=>{if(W){if(U.tm.running){U.tm.rem--;if(U.tm.rem<=0){U.tm.rem=0;U.tm.running=false;toast('Focus session complete. Take a short break.','Focus Timer',true)}paintTimer()}if((U.rc=(U.rc||0)+1)%30===0)renderMain();return}tickClock();U.rc=(U.rc||0)+1;if(U.rc%20===0)checkReminders();if(U.rc%60===0)updPoll();if(U.rc%300===0&&S.settings.notif.gcal){const k=monthOf(U.mo);fetchMonth(k.y,k.m,true)}if(U.tm.running){U.tm.rem--;if(U.tm.rem<=0){U.tm.rem=0;U.tm.running=false;toast('Focus session complete. Take a short break.','Focus Timer',true)}paintTimer()}
+ if(todayStr()!==U.lastDay&&!U.modal)renderMain()},1000);
+function migrate(){if(!S.mig1){const g=S.goals.find(x=>x.title==='AI Learning'),p=S.projects.find(x=>x.name==='StudioOs');if(g&&p&&!p.goal)p.goal=g.id;S.mig1=true}}
+S=load()||seed();migrate();
+if(W){startWidget()}else{renderAll()}
+if(!W)(async()=>{const had=!!load();if(!had){try{const d=await dbDoc();if(d){const s=await d.get();const v=s&&(s.data?s.data():s);if(v&&v.json){const o=JSON.parse(v.json);if(o&&o.tasks){S=o;migrate();renderAll()}}}}catch(_){}}
+ ready=true;save();setTimeout(checkReminders,2500);if(S.settings.notif.gcal){const k=monthOf(0);fetchMonth(k.y,k.m,true)}
+ if(S.settings.bg==='custom'){try{const u=await idb('r');if(u){U.bgUrl=u;applyLook()}}catch(_){}}})();
+})();
+</script></body></html>
