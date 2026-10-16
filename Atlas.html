@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="atlas-version" content="22">
+<meta name="atlas-version" content="23">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-52 -52 104 104'%3E%3Crect x='-52' y='-52' width='104' height='104' rx='22' fill='%230B0A1A' stroke='%232A2550' stroke-width='1'/%3E%3Cpath d='M-28 30 L0 -32 L28 30' fill='none' stroke='%23A78BFA' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-15 12 l5 -9 l5 18 l5 -18 l5 18 l5 -18 l5 9' fill='none' stroke='%23FFB25B' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Atlas — Home</title>
@@ -574,19 +574,21 @@ async function recStart(){const m=mfind(U.meet);if(!m||U.rec)return;if(location.
  U.rec=R;m.status='recording';save();renderMain()}
 function flushRec(R){if(!R.buf.length)return;const all=new Int16Array(R.bytes/2);let o=0;R.buf.forEach(b=>{all.set(b,o);o+=b.length});R.buf=[];R.bytes=0;R.sending=R.sending.then(()=>fetch('/rec/chunk?id='+encodeURIComponent(R.id),{method:'POST',body:all.buffer})).catch(()=>{})}
 async function recStop(){const R=U.rec;if(!R)return;R.proc.onaudioprocess=null;try{R.proc.disconnect()}catch(_){}R.streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));try{R.ac.close()}catch(_){}flushRec(R);await R.sending;const m=mfind(R.m);U.rec=null;
- try{await fetch('/rec/stop?id='+encodeURIComponent(R.id),{method:'POST'});U.recJob={id:R.id,m:R.m};if(m){m.status='transcribing';touch(m);save()}}catch(_){toast('Could not reach the Atlas app to transcribe. The audio may be incomplete.','Meeting')}
+ try{await fetch('/rec/stop?id='+encodeURIComponent(R.id),{method:'POST'});U.recJob={id:R.id,m:R.m,since:Date.now()};if(m){m.status='transcribing';m.recId=R.id;touch(m);save()}}catch(_){toast('Could not reach the Atlas app to transcribe. The audio may be incomplete.','Meeting')}
  renderMain()}
-function updRec(){const R=U.rec,t=document.getElementById('recT');if(!R||!t)return;const s=Math.floor((Date.now()-R.start)/1000);t.textContent=p2(Math.floor(s/60))+':'+p2(s%60);const l=document.getElementById('recL');if(l)l.style.width=Math.min(100,Math.round(R.level*400))+'%'}
+function updRec(){const J=U.recJob,jt=document.getElementById('recJ');if(J&&jt){const s0=Math.floor((Date.now()-(J.since||Date.now()))/1000);jt.textContent='('+p2(Math.floor(s0/60))+':'+p2(s0%60)+' elapsed)'}const R=U.rec,t=document.getElementById('recT');if(!R||!t)return;const s=Math.floor((Date.now()-R.start)/1000);t.textContent=p2(Math.floor(s/60))+':'+p2(s%60);const l=document.getElementById('recL');if(l)l.style.width=Math.min(100,Math.round(R.level*400))+'%'}
 async function pollRec(){const j=U.recJob;if(!j||U.polling)return;U.polling=true;
  try{const r=await fetch('/rec/status?id='+encodeURIComponent(j.id)),s=await r.json(),m=mfind(j.m);
+  if(s.state==='unknown'||(Date.now()-(j.since||Date.now())>1800000)){const why=s.state==='unknown'?'Atlas was restarted before the transcript finished.':'Transcription is taking too long.';if(m){m.status='error';m.err=why;save()}U.recJob=null;toast(why+' Open the meeting and press Retry.','Meeting');if(U.meet)renderMain();U.polling=false;return}
   if(s.state==='done'){if(m){m.transcript=(m.transcript?m.transcript+'\n\n':'')+s.text;m.status='ready';touch(m);save()}U.recJob=null;toast('Transcript ready'+(m?': '+m.title:'')+'. Open it and press Summarize.','Meeting',true);if(U.meet)renderMain()}
-  else if(s.state==='error'){if(m){m.status='error';save()}U.recJob=null;toast(s.msg||'Transcription failed.','Meeting');if(U.meet)renderMain()}}catch(_){}
+  else if(s.state==='error'){if(m){m.status='error';m.err=s.msg||'Transcription failed.';save()}U.recJob=null;toast(s.msg||'Transcription failed.','Meeting');if(U.meet)renderMain()}}catch(_){}
  U.polling=false}
 function recCardHTML(m){if(location.hostname!=='localhost')return '<section class="c" style="flex:1 1 280px"><div class="hd"><h2>Recorder</h2></div><div class="empty">Recording works in the Atlas app on your PC. Here you can paste a transcript or notes.</div></section>';
  const R=U.rec,job=U.recJob&&U.recJob.m===m.id;let b;
  if(R&&R.m===m.id)b='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:12px;height:12px;border-radius:6px;background:#FF4D6D;display:inline-block"></span><b id="recT">00:00</b></div><div class="bar" style="margin-bottom:12px"><div id="recL" style="width:0%;background:#3DD68C"></div></div><button class="btn dng" data-a="mstop">■ Stop &amp; transcribe</button>';
  else if(R)b='<div class="empty">Another meeting is being recorded.</div>';
- else if(job)b='<div class="empty">Transcribing… long meetings take a few minutes. You can keep using Atlas.</div>';
+ else if(job)b='<div class="empty">Transcribing… <b id="recJ"></b> A short recording takes under a minute; long meetings take longer. You can keep using Atlas.</div>';
+ else if(m.status==='error'||(m.status==='transcribing'&&!job))b='<div class="empty" style="border-color:var(--orange)">'+esc(m.err||'The transcript did not finish.')+'</div><div class="opts" style="margin-top:10px">'+(m.recId?'<button data-a="mretry">Retry transcription</button>':'')+'<button data-a="mclear">Record again</button></div>';
  else b='<div class="sw" style="padding:0 0 10px"><span>Also capture other people\'s voices<small>Share your screen and tick “share audio”. Otherwise only your microphone is recorded.</small></span><button role="switch" aria-checked="'+!!U.recSys+'" aria-label="Capture system audio" class="'+(U.recSys?'on':'')+'" data-a="msys"><i></i></button></div><button class="btn pri" data-a="mrec">● Start recording</button>'+(U.eng&&U.eng.whisper===false?'<div class="hint" style="margin-top:8px;color:var(--orange)">Transcription engine not installed. Audio is still saved; run the build file again and answer Y to voice transcription.</div>':'');
  return '<section class="c" style="flex:1 1 280px"><div class="hd"><h2>Recorder</h2></div>'+b+'<div class="hint" style="margin-top:10px">Tell people before you record them.</div></section>'}
 function renderMeet(){if(U.meet==='list'){const ms=(S.meetings||[]).slice().sort((a,b)=>b.created-a.created);
@@ -727,6 +729,8 @@ mback(){U.meet='list';renderMain()},
 msys(){U.recSys=!U.recSys;renderMain()},
 mrec(){recStart()},
 mstop(){recStop()},
+async mretry(){const m=mfind(U.meet);if(!m||!m.recId)return;try{await fetch('/rec/stop?id='+encodeURIComponent(m.recId),{method:'POST'});U.recJob={id:m.recId,m:m.id,since:Date.now()};m.status='transcribing';m.err='';save();renderMain()}catch(_){toast('Could not reach the Atlas app.','Meeting')}},
+mclear(){const m=mfind(U.meet);if(m){m.status='draft';m.err='';save();renderMain()}},
 msum(){msummarize()},
 mact(d){const m=mfind(U.meet),a=m&&m.actions[+d.i];if(a&&!a.taskId){a.pick=!a.pick;save();renderMain()}},
 mfu(d){const m=mfind(U.meet),a=m&&m.followups[+d.i];if(a&&!a.fuId){a.pick=!a.pick;save();renderMain()}},
@@ -800,7 +804,7 @@ document.addEventListener('keydown',e=>{
 $('#msg').addEventListener('focus',()=>{if(!U.chatOpen)openChat()});
 
 /* ---------- boot ---------- */
-setInterval(()=>{if(W){if(U.tm.running){U.tm.rem--;if(U.tm.rem<=0){U.tm.rem=0;U.tm.running=false;toast('Focus session complete. Take a short break.','Focus Timer',true)}paintTimer()}if((U.rc=(U.rc||0)+1)%30===0)renderMain();return}tickClock();U.rc=(U.rc||0)+1;if(U.rc%20===0)checkReminders();if(U.rc%60===0)updPoll();if(U.rec)updRec();if(U.recJob&&U.rc%3===0)pollRec();if(U.rc%300===0&&S.settings.notif.gcal){const k=monthOf(U.mo);fetchMonth(k.y,k.m,true)}if(U.tm.running){U.tm.rem--;if(U.tm.rem<=0){U.tm.rem=0;U.tm.running=false;toast('Focus session complete. Take a short break.','Focus Timer',true)}paintTimer()}
+setInterval(()=>{if(W){if(U.tm.running){U.tm.rem--;if(U.tm.rem<=0){U.tm.rem=0;U.tm.running=false;toast('Focus session complete. Take a short break.','Focus Timer',true)}paintTimer()}if((U.rc=(U.rc||0)+1)%30===0)renderMain();return}tickClock();U.rc=(U.rc||0)+1;if(U.rc%20===0)checkReminders();if(U.rc%60===0)updPoll();if(U.rec||U.recJob)updRec();if(U.recJob&&U.rc%3===0)pollRec();if(U.rc%300===0&&S.settings.notif.gcal){const k=monthOf(U.mo);fetchMonth(k.y,k.m,true)}if(U.tm.running){U.tm.rem--;if(U.tm.rem<=0){U.tm.rem=0;U.tm.running=false;toast('Focus session complete. Take a short break.','Focus Timer',true)}paintTimer()}
  if(todayStr()!==U.lastDay&&!U.modal)renderMain()},1000);
 function migrate(){if(!S.meetings)S.meetings=[];if(!S.mig1){const g=S.goals.find(x=>x.title==='AI Learning'),p=S.projects.find(x=>x.name==='StudioOs');if(g&&p&&!p.goal)p.goal=g.id;S.mig1=true}}
 S=load()||seed();migrate();
