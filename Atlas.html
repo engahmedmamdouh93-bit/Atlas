@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="atlas-version" content="20">
+<meta name="atlas-version" content="22">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-52 -52 104 104'%3E%3Crect x='-52' y='-52' width='104' height='104' rx='22' fill='%230B0A1A' stroke='%232A2550' stroke-width='1'/%3E%3Cpath d='M-28 30 L0 -32 L28 30' fill='none' stroke='%23A78BFA' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-15 12 l5 -9 l5 18 l5 -18 l5 18 l5 -18 l5 9' fill='none' stroke='%23FFB25B' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Atlas — Home</title>
@@ -165,6 +165,14 @@ h2{margin:0;font-size:18px;font-weight:600}
 #toast{position:fixed;z-index:80;top:calc(20px + env(safe-area-inset-top,0px));right:20px;max-width:min(380px,calc(100% - 40px));display:flex;gap:12px;align-items:flex-start;padding:14px 16px;background:var(--pop);border:1px solid var(--ac);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.45)}
 #toast b{display:block;font-size:13px;color:var(--acl2)}
 #toast span{font-size:14px}
+#nchrome .dragz{position:fixed;top:0;left:0;right:150px;height:22px;z-index:150}
+#nchrome .wt{position:fixed;top:4px;left:14px;font-size:12px;color:var(--mu);z-index:151;pointer-events:none}
+#nchrome .wc{position:fixed;top:0;right:0;z-index:200;display:flex}
+#nchrome .wc button{width:44px;height:30px;border:0;background:transparent;color:var(--mu);font-size:14px;border-radius:0}
+#nchrome .wc button:hover{background:var(--inner);color:var(--tx)}
+#nchrome .wc .x:hover{background:#E81123;color:#fff}
+.popbar{position:fixed;top:3px;left:50%;transform:translateX(-50%);z-index:190;display:flex;gap:8px;align-items:center;background:var(--pop);border:1px solid var(--bd2);border-radius:14px;padding:3px 10px}
+.popbar .btn{height:26px;font-size:12px}
 body.widget #app{display:block;padding:10px;min-height:100vh}
 body.widget nav,body.widget #bar,body.widget #chatlayer,body.widget #bg{display:none!important}
 body.widget main{max-width:none;gap:10px}
@@ -195,8 +203,13 @@ body.widget [data-a="add"]{display:none}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const RZ='Asia/Riyadh';
-const W=/^\/widget\//.test(location.pathname)?location.pathname.split('/')[2]:'';
-const WT={tasks:'Tasks',today:'Today',habits:'Habits',timer:'Timer'};
+const WK=/^\/widget\//.test(location.pathname)?location.pathname.split('/')[2]:'';
+const POP=WK==='app';
+const W=POP?'':WK;
+const WID=POP?'app':W;
+const NATIVE=!!(window.chrome&&window.chrome.webview);
+function nmsg(m){try{window.chrome.webview.postMessage(m)}catch(_){}}
+const WT={tasks:'Tasks',today:'Today',habits:'Habits',timer:'Timer',app:'App'};
 const uid=()=>'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 function rp(ms){const p={};new Intl.DateTimeFormat('en-CA',{timeZone:RZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms||Date.now())).forEach(x=>{p[x.type]=x.value});return p}
 const todayStr=()=>{const p=rp();return p.year+'-'+p.month+'-'+p.day};
@@ -263,7 +276,7 @@ function reply(type,text,it){const q='“'+text+'”';
  return({Task:(it&&it.due)?'Added task: '+q+' — Scheduled '+fmtDate(it.due)+'.':'Added task: '+q+' — Inbox, no date. Tap it to set a date.',Idea:'Saved idea: '+q+' — Stage: Captured.',Goal:'New goal: '+q+' — added to Focus Goals. Open it to set a target date.',Project:'New project: '+q+' — Status Off. Open it to set the next action.',['Follow-up']:'Follow-up with '+q+' added. Open it to set a date.',Note:'Saved note: '+q+'.',Habit:'Added habit: '+q+' — it is now in your weekly tracker.'})[type]}
 
 /* ---------- render: main ---------- */
-const NAV=[['Home','M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z','top'],['Calendar','M3 5h18v16H3zM3 10h18M8 3v4M16 3v4','cal'],['Tasks','M5 4h14v17H5zM9 4V2.5h6V4M8.5 11l2 2 4-4M8.5 17h7','tasks'],['Projects','M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z','proj'],['Goals','M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z','goals'],['Ideas — Pump your mind','M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z','ideas'],['Follow-ups','M9 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM2.5 20c.5-3.5 3.2-5.5 6.5-5.5s6 2 6.5 5.5M17 6.5a3 3 0 0 1 0 5.5M19 14.8c1.4.8 2.3 2.4 2.5 5.2','fu']];
+const NAV=[['Home','M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z','top'],['Calendar','M3 5h18v16H3zM3 10h18M8 3v4M16 3v4','cal'],['Tasks','M5 4h14v17H5zM9 4V2.5h6V4M8.5 11l2 2 4-4M8.5 17h7','tasks'],['Projects','M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z','proj'],['Goals','M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z','goals'],['Ideas — Pump your mind','M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z','ideas'],['Follow-ups','M9 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM2.5 20c.5-3.5 3.2-5.5 6.5-5.5s6 2 6.5 5.5M17 6.5a3 3 0 0 1 0 5.5M19 14.8c1.4.8 2.3 2.4 2.5 5.2','fu'],['Meetings','M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3','meet']];
 const ic=(d,sw)=>'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(sw||1.8)+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>';
 function renderNav(){$('#nav').innerHTML=LOGO+NAV.map((n,i)=>'<button class="nb'+(i===0?' on':'')+'" aria-label="'+esc(n[0])+'" data-a="nav" data-to="'+n[2]+'">'+ic(n[1])+'</button>').join('')+
  '<button class="nb" aria-label="Settings" aria-expanded="'+U.settings+'" data-a="settings">'+ic('M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z')+'</button><div class="sp"></div>'+
@@ -308,7 +321,7 @@ function capHTML(){const c=captures();return '<section class="c" style="flex:1 1
 function projHTML(){const ps=S.projects.filter(p=>p.status!=='Archived').sort((a,b)=>(a.status==='On'?0:1)-(b.status==='On'?0:1));
  return '<section class="c" id="proj" style="flex:1 1 420px" aria-labelledby="proj-h"><div class="hd"><h2 id="proj-h">Projects &amp; Deadlines</h2><button class="btn" data-a="add" data-t="Project">+ Project</button></div>'+
  (ps.length?ps.map(p=>{const st=projStats(p),pc=pctOf(st.pct),g=S.goals.find(x=>x.id===p.goal),on=p.status==='On';return '<div class="g" style="padding:12px;background:var(--inner);border-radius:14px;margin-bottom:12px"><div class="l" style="margin-bottom:8px"><button data-a="proj" data-id="'+p.id+'" style="flex:1 1 auto;min-width:0;text-align:left;border:0;background:transparent;padding:0;font-weight:600;font-size:14px">'+esc(p.name)+'</button><span class="pill" style="color:'+(on?'var(--green)':'var(--mu)')+';border-color:'+(on?'var(--green)':'var(--mu2)')+'">'+p.status+'</span><span style="color:var(--mu)">'+(st.n?pc+'%':'—')+'</span>'+menuBtn('projects:'+p.id,p.name,0,'Archive “'+p.name+'”? Status becomes Archived.','archive','Archive')+'</div><div class="bar"><div style="width:'+pc+'%;background:'+(p.color||'#6D4AFF')+'"></div></div><div class="hint" style="margin-top:6px">Next: '+esc(p.nextAction||'Not set')+' · '+(p.deadline?fmtDate(p.deadline):(p.nd?'No deadline':'[deadline]'))+(g?' · counts toward '+esc(g.title):'')+' · '+(st.n?st.d+'/'+st.n+' tasks':'No tasks yet')+'</div></div>'}).join(''):'<div class="empty">No projects yet.</div>')+'</section>'}
-function renderMain(){if(W){renderWidget();return}if(U.proj){renderProj();U.lastDay=todayStr();return}if(U.day){renderDay();U.lastDay=todayStr();return}const p=rp(),h=+p.hour,gr=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening';
+function renderMain(){if(W){renderWidget();return}if(U.meet){renderMeet();return}if(U.proj){renderProj();U.lastDay=todayStr();return}if(U.day){renderDay();U.lastDay=todayStr();return}const p=rp(),h=+p.hour,gr=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening';
  const tm=new Intl.DateTimeFormat('en-US',{timeZone:RZ,hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date()).split(' ');
  const cd=new Intl.DateTimeFormat('en-US',{timeZone:RZ,weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date());
  $('#main').innerHTML='<header id="top"><div><h1><span id="greet" style="color:var(--white)">'+gr+'</span>,<br><span>Ahmed</span></h1><p class="tag">Capture · Organize · Remind · Review · Act</p></div><div class="clock"><div class="t"><span id="clk">'+tm[0]+'</span><small id="clkap">'+tm[1]+'</small></div><div class="d" id="clkd">'+cd+' · Riyadh</div></div></header>'+
@@ -374,7 +387,7 @@ function needTimeHTML(){if(!S.settings.notif.gcal)return '';const a=S.tasks.filt
  return '<section class="c" style="border-color:var(--orange)" aria-label="Tasks that need a time"><div class="hd"><h2>⏰ '+a.length+' dated task'+(a.length>1?'s':'')+' need a time</h2><span class="hint">Add a time and Atlas puts it on Google Calendar with an alert</span></div>'+a.slice(0,5).map(t=>'<div class="tk"><div class="bd" style="flex:1;min-width:0"><div class="ti">'+esc(t.title)+'</div><div class="pj">'+fmtDate(t.due)+'</div></div><input type="time" id="nt_'+t.id+'" aria-label="Time for '+esc(t.title)+'" style="background:var(--inner);border:1px solid var(--bd);border-radius:10px;padding:7px 9px;color:var(--tx)"><button class="btn pri" data-a="ntadd" data-id="'+t.id+'">Add</button><button class="btn" data-a="ntskip" data-id="'+t.id+'">Skip</button></div>').join('')+(a.length>5?'<div class="hint" style="margin-top:8px">+ '+(a.length-5)+' more</div>':'')+'</section>'}
 function dayEvents(d){if(!S.settings.notif.gcal)return '<div class="hint" style="margin-top:12px">Turn on Google Calendar in Settings → Connections to see events here.</div>';const ev=eventsOn(d);return '<h2 style="font-size:15px;margin:16px 0 8px">Google Calendar</h2>'+(ev.length?ev.map(e=>'<div class="ev" style="box-shadow:inset 3px 0 0 #4F8BFF"><div class="tm">'+(e.allDay?'All day':e.start+(e.end?'<br><span style="color:var(--mu)">'+e.end+'</span>':''))+'</div><div><div class="tt"><i style="background:#4F8BFF"></i>'+esc(e.title)+'</div></div></div>').join(''):'<div class="empty">No other events on this day.</div>')}
 /* ---------- reminders (while the app is open) ---------- */
-function checkReminders(){if(!ready)return;const now=Date.now(),lead=S.settings.notif.lead,msgs=[];let ch=false;
+function checkReminders(){if(!ready||POP)return;const now=Date.now(),lead=S.settings.notif.lead,msgs=[];let ch=false;
  S.tasks.forEach(t=>{if(!isOpen(t)||!t.due||!timeOf(t.due)||t.rem===t.due)return;const due=Date.parse(t.due.slice(0,10)+'T'+timeOf(t.due)+':00+03:00');if(isNaN(due))return;if(now>=due+3600000){t.rem=t.due;ch=true}else if(now>=due-lead*60000){t.rem=t.due;ch=true;const mn=Math.round((due-now)/60000);msgs.push(t.title+' — '+(mn>0?'due in '+mn+' min':'due now')+' ('+timeOf(t.due)+')')}});
  const td=todayStr();if(+rp().hour>=9&&S.lastDigest!==td){S.lastDigest=td;ch=true;const n=S.tasks.filter(t=>isOpen(t)&&t.due&&t.due.slice(0,10)<=td&&!timeOf(t.due)).length;if(n)msgs.push(n+' task'+(n>1?'s are':' is')+' due today or overdue (no set time)')}
  if(msgs.length)toast(msgs.join(' · '),'Atlas reminder',true);if(ch)save()}
@@ -478,11 +491,11 @@ async function atlasReply(c,text){const s=await getSample();
  catch(e){msg.text=ran.length?'Atlas stopped ('+sampleErr(e)+'). Done before that: '+ran.join('; ')+'.':'Atlas couldn\'t answer — '+sampleErr(e)+'. Nothing was changed.'}
  saveChat();renderChat();renderMain()}
 /* ---------- full-screen / desktop widgets ---------- */
-function wconf(){const d={opacity:90,top:false,filter:'Today',size:14};try{return Object.assign(d,JSON.parse(localStorage.getItem('atlas_w_'+W)||'{}'))}catch(_){return d}}
-function wsave(c){try{localStorage.setItem('atlas_w_'+W,JSON.stringify(c))}catch(_){}}
-function wapply(c){fetch('/w/apply?kind='+W+'&opacity='+c.opacity+'&top='+(c.top?1:0)).catch(()=>{})}
+function wconf(){const d={opacity:90,top:false,filter:'Today',size:14};try{return Object.assign(d,JSON.parse(localStorage.getItem('atlas_w_'+WID)||'{}'))}catch(_){return d}}
+function wsave(c){try{localStorage.setItem('atlas_w_'+WID,JSON.stringify(c))}catch(_){}}
+function wapply(c){fetch('/w/apply?kind='+WID+'&opacity='+c.opacity+'&top='+(c.top?1:0)).catch(()=>{})}
 function applyWidgetLook(c){document.body.style.fontSize=c.size+'px'}
-function widgetsPanel(){return '<h3>DESKTOP WIDGETS</h3><div class="opts">'+['tasks','today','habits','timer'].map(k=>'<button data-a="wopen" data-k="'+k+'">Open '+WT[k]+'</button>').join('')+'</div><div class="opts" style="margin-top:8px"><button data-a="wall" data-v="hide">Hide all</button><button data-a="wall" data-v="show">Show all</button></div><div class="hint" style="margin-top:6px">Each widget has its own ⚙ for transparency, “over other apps”, filter and text size. Hidden widgets come back from here, the tray icon, or Ctrl+Alt+A.</div>'}
+function widgetsPanel(){return '<h3>DESKTOP WIDGETS</h3><div class="opts">'+['tasks','today','habits','timer','app'].map(k=>'<button data-a="wopen" data-k="'+k+'">'+(k==='app'?'Full app popup':'Open '+WT[k])+'</button>').join('')+'</div><div class="opts" style="margin-top:8px"><button data-a="wall" data-v="hide">Hide all</button><button data-a="wall" data-v="show">Show all</button></div><div class="hint" style="margin-top:6px">Each widget has its own ⚙ for transparency, “over other apps”, filter and text size. Hidden widgets come back from here, the tray icon, or Ctrl+Alt+A.</div>'}
 function wcfgHTML(c){return '<div class="g" style="padding:12px;background:var(--inner);border-radius:14px;margin-bottom:10px"><div class="rg"><label><span>Window transparency</span><span>'+c.opacity+'%</span></label><input type="range" min="25" max="100" step="5" value="'+c.opacity+'" data-w="opacity" aria-label="Window opacity"></div><div class="rg" style="margin-top:8px"><label><span>Text size</span><span>'+c.size+' px</span></label><input type="range" min="11" max="22" step="1" value="'+c.size+'" data-w="size" aria-label="Text size"></div>'+
  (W==='tasks'?'<div class="opts" style="margin-top:10px">'+['All','Today','Next','Inbox'].map(f=>'<button class="'+(c.filter===f?'on':'')+'" aria-pressed="'+(c.filter===f)+'" data-a="wfilter" data-v="'+f+'">'+f+'</button>').join('')+'</div>':'')+
  '<div class="sw"><span>Over other apps<small>Stays on top of your windows</small></span><button role="switch" aria-checked="'+c.top+'" aria-label="Over other apps" class="'+(c.top?'on':'')+'" data-a="wtop"><i></i></button></div><div class="opts"><button data-a="wclose">Close widget</button></div></div>'}
@@ -514,6 +527,81 @@ function calExportPanel(){const n=S.settings.notif;return '<h3>EXPORT TO GOOGLE 
 function updatesPanel(){const u=U.upd||{};return '<h3>UPDATES</h3><div class="hint">This is version '+AV+(u.version&&u.version>AV?' · version '+u.version+' is ready, reload to use it':'')+'</div><label class="fld" style="margin-top:8px">Update source (link to Atlas.html)<input id="upd_url" value="'+esc(u.url||'')+'" placeholder="https://raw.githubusercontent.com/you/atlas-app/main/Atlas.html"></label><div class="opts"><button data-a="usave">Save &amp; check now</button>'+(u.version&&u.version>AV?'<button data-a="reload">Reload</button>':'')+'</div>'+(u.msg?'<div class="hint" style="margin-top:6px">'+esc(u.msg)+'</div>':'')}
 async function updFetch(path){try{const r=await fetch(path);U.upd=await r.json()}catch(_){U.upd={msg:'Could not reach the Atlas app on this PC.'}}if(U.settings)renderPanels()}
 function updPoll(){if(location.hostname!=='localhost')return;fetch('/u/status').then(r=>r.json()).then(u=>{U.upd=u;if(u.version>AV&&U.updShown!==u.version){U.updShown=u.version;const b=$('#toastbox');clearTimeout(toastT);b.innerHTML='<div id="toast" role="alertdialog"><b>Atlas update</b><span>Version '+u.version+' is ready.<div style="display:flex;gap:8px;margin-top:8px"><button class="btn pri" data-a="reload">Reload now</button><button class="btn" data-a="toastx">Later</button></div></span></div>'}}).catch(()=>{})}
+function nativeChrome(){if(W)return;const d=document.createElement('div');d.id='nchrome';d.innerHTML='<div class="dragz drag"></div><div class="wt">Atlas</div><div class="wc"><button data-a="nmin" aria-label="Minimize">–</button><button data-a="nmax" aria-label="Maximize or restore">▢</button><button class="x" data-a="nclose" aria-label="Close">✕</button></div>';document.body.appendChild(d)}
+function renderPopBar(){const c=wconf(),b=document.getElementById('popbar');if(!b)return;b.innerHTML='<span class="hint">Opacity</span><input type="range" min="25" max="100" step="5" value="'+c.opacity+'" data-w="opacity" aria-label="Window opacity"><button class="btn'+(c.top?' pri':'')+'" data-a="wtop" aria-pressed="'+c.top+'">Over apps</button><button class="btn" data-a="whide" title="Hide (restore from the tray icon)">–</button>'}
+function startPopup(){document.body.classList.add('popup');document.title='Atlas Widget - App';const b=document.createElement('div');b.id='popbar';b.className='popbar drag';document.body.appendChild(b);renderPopBar();const c=wconf();setTimeout(()=>wapply(c),900);setTimeout(()=>wapply(c),3500)}
+document.addEventListener('mousedown',e=>{if(!NATIVE||e.button!==0)return;const t=e.target;if(!t||!t.closest)return;if(t.closest('button,input,select,textarea,a'))return;if(t.closest('.drag,.wbar'))nmsg('drag')});
+document.addEventListener('dblclick',e=>{if(NATIVE&&e.target&&e.target.closest&&e.target.closest('.dragz'))nmsg('max')});
+/* ---------- meetings: record, transcribe, summarize, tasks ---------- */
+const mfind=id=>(S.meetings||[]).find(m=>m.id===id);
+function newMeeting(src){const n=Date.now(),m={id:uid(),title:'Meeting '+fmtDate(todayStr()),date:todayStr(),attendees:'',project:'',source:src,transcript:'',summary:'',decisions:[],actions:[],followups:[],topics:[],status:'draft',created:n,updated:n};S.meetings.push(m);save();return m}
+function apiKey(){try{return localStorage.getItem('atlas_apikey')||''}catch(_){return ''}}
+function aiKeyPanel(){if(window.claude)return '';return '<h3>AI KEY (OPTIONAL)</h3><label class="fld">Anthropic API key<input id="aikey" type="password" autocomplete="off" placeholder="'+(apiKey()?'saved — type to replace':'sk-ant-…')+'"></label><div class="opts"><button data-a="aisave">Save key</button>'+(apiKey()?'<button data-a="aiclear">Remove key</button>':'')+'</div><div class="hint" style="margin-top:6px">Stored only on this PC, never in backups, exports or Notion. Used for meeting summaries. Anthropic bills API use separately.</div>'}
+async function aiAsk(prompt,tier){const s=await getSample();if(s){const r=await s(prompt,{modelTier:tier||'default',cache:false});return (r&&r.text)||''}
+ const k=apiKey();if(!k)throw{message:'noai'};
+ const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:(S.settings&&S.settings.aiModel)||'claude-sonnet-5-5',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
+ const j=await res.json();if(!res.ok)throw{message:(j.error&&j.error.message)||('HTTP '+res.status)};return (j.content||[]).map(c=>c.text||'').join('')}
+function parseLoose(t){const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<=a)throw{message:'The answer was not in the expected format.'};return JSON.parse(t.slice(a,b+1))}
+function engFetch(){if(location.hostname!=='localhost')return;fetch('/rec/engine').then(r=>r.json()).then(j=>{U.eng=j;if(U.meet)renderMain()}).catch(()=>{U.eng={whisper:false}})}
+async function msummarize(){const m=mfind(U.meet);if(!m||U.msum)return;if((m.transcript||'').trim().length<40){toast('Add a transcript or notes first.','Meeting');return}
+ U.msum=true;renderMain();
+ try{const tr=m.transcript.length>120000?m.transcript.slice(0,120000)+'\n[truncated]':m.transcript;
+  const prompt='You are Ahmed\'s meeting note taker. Below is a meeting transcript or rough notes (may mix Arabic and English; keep names as spoken). Reply with ONLY one JSON object, no other text:\n{"title":"short title","summary":"5-8 sentences","decisions":["..."],"actions":[{"title":"verb-first task","owner":"name or empty","due":"YYYY-MM-DD or empty","notes":""}],"followups":[{"name":"person","context":"why"}],"topics":["..."]}\nRules: never invent owners, dates, amounts or commitments that were not stated. Set due only when a date is explicit (resolve relative dates from today, '+todayStr()+'). Include only concrete commitments as actions. Write the summary in the main language of the meeting.\nMeeting date: '+m.date+'. Attendees: '+(m.attendees||'not given')+'. Project: '+(m.project||'none')+'.\n\nTranscript:\n'+tr;
+  const j=parseLoose(await aiAsk(prompt,'default'));
+  m.summary=String(j.summary||'');m.decisions=(j.decisions||[]).map(String);
+  m.actions=(j.actions||[]).filter(a=>a&&a.title).map(a=>({title:String(a.title),owner:String(a.owner||''),due:isD(a.due)?a.due:'',notes:String(a.notes||''),pick:!a.owner||/ahmed|أحمد|\bme\b/i.test(a.owner),taskId:''}));
+  m.followups=(j.followups||[]).filter(f=>f&&f.name).map(f=>({name:String(f.name),context:String(f.context||''),pick:true,fuId:''}));
+  m.topics=(j.topics||[]).map(String);if(j.title&&/^Meeting /.test(m.title))m.title=String(j.title).slice(0,90);
+  m.status='ready';touch(m);save();toast('Summary ready: '+m.actions.length+' action item(s) to review.','Meeting')}
+ catch(e){toast(e&&e.message==='noai'?'Summaries need the claude.ai version, or an API key in Settings → Connections.':'Couldn\'t summarize — '+sampleErr(e)+'. Nothing was changed.','Meeting')}
+ U.msum=false;if(U.meet)renderMain()}
+function mTasks(){const m=mfind(U.meet);if(!m)return;let n=0,dup=0;const old=U.presetDue;U.presetDue=null;
+ m.actions.forEach(a=>{if(!a.pick||a.taskId)return;const ex=S.tasks.find(t=>isOpen(t)&&sameTitle(t.title,a.title));if(ex){a.taskId=ex.id;dup++;return}const it=createItem('Task',a.title);it.project=m.project||'';if(a.due){it.due=a.due;it.status='Scheduled'}it.notes='From meeting: '+m.title+(a.owner?' · owner: '+a.owner:'')+(a.notes?'\n'+a.notes:'');touch(it);a.taskId=it.id;n++;if(it.due)needTimeNote(it)});
+ U.presetDue=old;touch(m);save();renderMain();toast('Created '+n+' task'+(n===1?'':'s')+(dup?' · '+dup+' already existed':'')+'.','Meeting')}
+function mFus(){const m=mfind(U.meet);if(!m)return;let n=0;m.followups.forEach(f=>{if(!f.pick||f.fuId)return;const ex=S.followups.find(x=>sameTitle(x.name,f.name));if(ex){f.fuId=ex.id;return}const it=createItem('Follow-up',f.name);it.context=f.context||('From meeting: '+m.title);touch(it);f.fuId=it.id;n++});touch(m);save();renderMain();toast('Added '+n+' follow-up'+(n===1?'':'s')+'.','Meeting')}
+function meetMD(m){return '# '+m.title+'\n'+m.date+(m.attendees?' · '+m.attendees:'')+(m.project?' · '+m.project:'')+'\n\n## Summary\n'+(m.summary||'(not summarized)')+'\n\n## Decisions\n'+(m.decisions.length?m.decisions.map(x=>'- '+x).join('\n'):'-')+'\n\n## Action items\n'+(m.actions.length?m.actions.map(a=>'- [ ] '+a.title+(a.owner?' ('+a.owner+')':'')+(a.due?' — '+a.due:'')).join('\n'):'-')+'\n\n## Follow-ups\n'+(m.followups.length?m.followups.map(f=>'- '+f.name+': '+f.context).join('\n'):'-')+'\n\n## Transcript\n'+(m.transcript||'')+'\n'}
+/* recorder: 16 kHz mono PCM streamed to the Atlas app on this PC, then transcribed with local Whisper */
+async function recStart(){const m=mfind(U.meet);if(!m||U.rec)return;if(location.hostname!=='localhost'){toast('Recording works in the Atlas app on your PC.','Meeting');return}
+ let mic;try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}catch(e){toast('Microphone is not available ('+((e&&e.message)||'blocked')+'). Check Windows Settings → Privacy → Microphone.','Meeting');return}
+ const streams=[mic];
+ if(U.recSys){try{const d=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});if(d.getAudioTracks().length)streams.push(d);else toast('No system audio was shared. Tick “share audio” when you pick the screen. Recording your microphone only.','Meeting')}catch(_){toast('Screen or system audio is not available here. Recording your microphone only.','Meeting')}}
+ const id=m.id+'_'+Date.now();const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC({sampleRate:16000});try{await ac.resume()}catch(_){}
+ const mix=ac.createGain();streams.forEach(s=>{if(s.getAudioTracks().length)ac.createMediaStreamSource(new MediaStream(s.getAudioTracks())).connect(mix)});
+ const proc=ac.createScriptProcessor(4096,1,1),mute=ac.createGain();mute.gain.value=0;mix.connect(proc);proc.connect(mute);mute.connect(ac.destination);
+ const R={id,m:m.id,ac,proc,streams,start:Date.now(),buf:[],bytes:0,level:0,sending:Promise.resolve()};
+ try{await fetch('/rec/start?id='+encodeURIComponent(id),{method:'POST'})}catch(_){streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));toast('Could not reach the Atlas app to save the recording.','Meeting');return}
+ proc.onaudioprocess=e=>{const f=e.inputBuffer.getChannelData(0),n=f.length,o=new Int16Array(n);let sum=0;for(let i=0;i<n;i++){const v=Math.max(-1,Math.min(1,f[i]));sum+=v*v;o[i]=v<0?v*32768:v*32767}R.level=Math.sqrt(sum/n);R.buf.push(o);R.bytes+=n*2;if(R.bytes>=320000)flushRec(R)};
+ U.rec=R;m.status='recording';save();renderMain()}
+function flushRec(R){if(!R.buf.length)return;const all=new Int16Array(R.bytes/2);let o=0;R.buf.forEach(b=>{all.set(b,o);o+=b.length});R.buf=[];R.bytes=0;R.sending=R.sending.then(()=>fetch('/rec/chunk?id='+encodeURIComponent(R.id),{method:'POST',body:all.buffer})).catch(()=>{})}
+async function recStop(){const R=U.rec;if(!R)return;R.proc.onaudioprocess=null;try{R.proc.disconnect()}catch(_){}R.streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));try{R.ac.close()}catch(_){}flushRec(R);await R.sending;const m=mfind(R.m);U.rec=null;
+ try{await fetch('/rec/stop?id='+encodeURIComponent(R.id),{method:'POST'});U.recJob={id:R.id,m:R.m};if(m){m.status='transcribing';touch(m);save()}}catch(_){toast('Could not reach the Atlas app to transcribe. The audio may be incomplete.','Meeting')}
+ renderMain()}
+function updRec(){const R=U.rec,t=document.getElementById('recT');if(!R||!t)return;const s=Math.floor((Date.now()-R.start)/1000);t.textContent=p2(Math.floor(s/60))+':'+p2(s%60);const l=document.getElementById('recL');if(l)l.style.width=Math.min(100,Math.round(R.level*400))+'%'}
+async function pollRec(){const j=U.recJob;if(!j||U.polling)return;U.polling=true;
+ try{const r=await fetch('/rec/status?id='+encodeURIComponent(j.id)),s=await r.json(),m=mfind(j.m);
+  if(s.state==='done'){if(m){m.transcript=(m.transcript?m.transcript+'\n\n':'')+s.text;m.status='ready';touch(m);save()}U.recJob=null;toast('Transcript ready'+(m?': '+m.title:'')+'. Open it and press Summarize.','Meeting',true);if(U.meet)renderMain()}
+  else if(s.state==='error'){if(m){m.status='error';save()}U.recJob=null;toast(s.msg||'Transcription failed.','Meeting');if(U.meet)renderMain()}}catch(_){}
+ U.polling=false}
+function recCardHTML(m){if(location.hostname!=='localhost')return '<section class="c" style="flex:1 1 280px"><div class="hd"><h2>Recorder</h2></div><div class="empty">Recording works in the Atlas app on your PC. Here you can paste a transcript or notes.</div></section>';
+ const R=U.rec,job=U.recJob&&U.recJob.m===m.id;let b;
+ if(R&&R.m===m.id)b='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:12px;height:12px;border-radius:6px;background:#FF4D6D;display:inline-block"></span><b id="recT">00:00</b></div><div class="bar" style="margin-bottom:12px"><div id="recL" style="width:0%;background:#3DD68C"></div></div><button class="btn dng" data-a="mstop">■ Stop &amp; transcribe</button>';
+ else if(R)b='<div class="empty">Another meeting is being recorded.</div>';
+ else if(job)b='<div class="empty">Transcribing… long meetings take a few minutes. You can keep using Atlas.</div>';
+ else b='<div class="sw" style="padding:0 0 10px"><span>Also capture other people\'s voices<small>Share your screen and tick “share audio”. Otherwise only your microphone is recorded.</small></span><button role="switch" aria-checked="'+!!U.recSys+'" aria-label="Capture system audio" class="'+(U.recSys?'on':'')+'" data-a="msys"><i></i></button></div><button class="btn pri" data-a="mrec">● Start recording</button>'+(U.eng&&U.eng.whisper===false?'<div class="hint" style="margin-top:8px;color:var(--orange)">Transcription engine not installed. Audio is still saved; run the build file again and answer Y to voice transcription.</div>':'');
+ return '<section class="c" style="flex:1 1 280px"><div class="hd"><h2>Recorder</h2></div>'+b+'<div class="hint" style="margin-top:10px">Tell people before you record them.</div></section>'}
+function renderMeet(){if(U.meet==='list'){const ms=(S.meetings||[]).slice().sort((a,b)=>b.created-a.created);
+  $('#main').innerHTML='<header><div><h1><span style="color:var(--white)">Meetings</span></h1><p class="tag">Record · transcribe · summarize · turn into tasks</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" data-a="mnew" data-src="rec">● Record a meeting</button><button class="btn" data-a="mnew" data-src="paste">Paste transcript or notes</button></div></header><div class="row"><section class="c" style="flex:1 1 100%">'+
+  (ms.length?ms.map(m=>'<button class="li" data-a="mopen" data-id="'+m.id+'"><span class="av" style="background:#6D4AFF33;color:#A78BFA">🎙</span><span class="tx"><b>'+esc(m.title)+'</b><small>'+fmtDate(m.date)+' · '+(m.summary?m.actions.length+' action item(s)':(m.transcript?'transcript only':m.status==='transcribing'?'transcribing…':'empty'))+'</small></span></button>').join(''):'<div class="empty">No meetings yet. Press “Record a meeting”, or paste a transcript from Teams, Meet, Zoom or Notion.</div>')+'</section></div>';return}
+ const m=mfind(U.meet);if(!m){U.meet='list';renderMeet();return}
+ const ai=!!window.claude||!!apiKey(),pr=['<option value="">— none —</option>'].concat(S.projects.filter(p=>p.status!=='Archived').map(p=>'<option'+(p.name===m.project?' selected':'')+'>'+esc(p.name)+'</option>')).join('');
+ let res='';
+ if(m.summary){res='<div class="row"><section class="c" style="flex:1 1 100%"><div class="hd"><h2>Notes</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-a="mcopy">Copy</button><button class="btn" data-a="mexp">Export .md</button></div></div><p style="margin:0 0 12px">'+esc(m.summary)+'</p>'+
+  (m.decisions.length?'<h3 style="margin:12px 0 6px;font-size:14px">Decisions</h3>'+m.decisions.map(d=>'<div class="hint" style="font-size:14px;color:var(--tx2)">• '+esc(d)+'</div>').join(''):'')+
+  '<h3 style="margin:16px 0 6px;font-size:14px">Action items</h3>'+(m.actions.length?m.actions.map((a,i)=>'<div class="tk"><button class="ck'+(a.taskId?' on':(a.pick?' on':''))+'" aria-pressed="'+!!(a.pick||a.taskId)+'" aria-label="Select: '+esc(a.title)+'" '+(a.taskId?'disabled':'data-a="mact" data-i="'+i+'"')+'>'+(a.pick||a.taskId?'✓':'')+'</button><div class="bd" style="flex:1;min-width:0;text-align:left"><div class="ti">'+esc(a.title)+'</div><div class="pj">'+esc((a.owner?a.owner:'no owner stated')+(a.due?' · '+fmtDate(a.due):' · no date stated'))+(a.taskId?' · task created':'')+'</div></div></div>').join('')+'<div style="margin-top:10px"><button class="btn pri" data-a="mtasks">Create selected tasks</button></div>':'<div class="empty">No concrete action items were found.</div>')+
+  (m.followups.length?'<h3 style="margin:16px 0 6px;font-size:14px">Follow-ups</h3>'+m.followups.map((f,i)=>'<div class="tk"><button class="ck'+(f.pick||f.fuId?' on':'')+'" aria-pressed="'+!!(f.pick||f.fuId)+'" aria-label="Select: '+esc(f.name)+'" '+(f.fuId?'disabled':'data-a="mfu" data-i="'+i+'"')+'>'+(f.pick||f.fuId?'✓':'')+'</button><div class="bd" style="flex:1;min-width:0;text-align:left"><div class="ti">'+esc(f.name)+'</div><div class="pj">'+esc(f.context)+(f.fuId?' · added':'')+'</div></div></div>').join('')+'<div style="margin-top:10px"><button class="btn" data-a="mfus">Add selected follow-ups</button></div>':'')+'</section></div>'}
+ $('#main').innerHTML='<header><div><button class="btn" data-a="mback">← All meetings</button><h1 style="margin-top:14px"><span style="color:var(--white)">'+esc(m.title)+'</span></h1><p class="tag">'+fmtDate(m.date)+(m.status==='transcribing'?' · transcribing…':'')+'</p></div><div>'+(U.mdel?'<span class="hint" style="margin-right:6px">Delete this meeting?</span><button class="btn dng" data-a="mdelyes">Yes</button> <button class="btn" data-a="mdelno">No</button>':'<button class="btn dng" data-a="mdel">Delete meeting…</button>')+'</div></header>'+
+ '<div class="row"><section class="c" style="flex:2 1 520px"><div class="hd"><h2>Transcript or notes</h2><button class="btn pri" data-a="msum"'+(U.msum?' disabled':'')+'>'+(U.msum?'Summarizing…':'Summarize with Atlas')+'</button></div><textarea data-mf="transcript" aria-label="Transcript or notes" placeholder="Paste a transcript from Teams, Meet, Zoom or Notion AI, type rough notes, or record the meeting." style="width:100%;min-height:300px;background:var(--inner);border:1px solid var(--bd);border-radius:12px;padding:12px;font-size:14px;color:var(--tx);resize:vertical">'+esc(m.transcript)+'</textarea>'+(ai?'':'<div class="hint" style="margin-top:8px;color:var(--orange)">Summaries need the claude.ai version, or an API key in Settings → Connections.</div>')+'</section>'+
+ '<div style="flex:1 1 300px;display:flex;flex-direction:column;gap:20px"><section class="c"><div class="hd"><h2>Details</h2></div><label class="fld">Title<input data-mf="title" value="'+esc(m.title)+'"></label><div class="two"><label class="fld">Date<input type="date" data-mf="date" value="'+esc(m.date)+'"></label><label class="fld">Project<select data-mf="project">'+pr+'</select></label></div><label class="fld">Attendees<input data-mf="attendees" value="'+esc(m.attendees)+'" placeholder="Names, separated by commas"></label></section>'+recCardHTML(m)+'</div></div>'+res}
 function tickClock(){const tm=new Intl.DateTimeFormat('en-US',{timeZone:RZ,hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date()).split(' ');const a=$('#clk');if(a){a.textContent=tm[0];$('#clkap').textContent=tm[1];const h=+rp().hour;$('#greet').textContent=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening'}}
 
 /* ---------- background / theme ---------- */
@@ -592,7 +680,7 @@ function settingsHTML(){const s=S.settings,n=s.notif;
  '<h3>CONNECTIONS</h3><div class="sw"><span>Notion<small>'+esc(notionStatus())+'</small></span><button class="btn" data-a="nsync">Sync to Notion</button></div>'+
  '<div class="sw"><span>Google Calendar<small>'+esc(gcStatus())+'</small></span><button role="switch" aria-checked="'+n.gcal+'" aria-label="Google Calendar" class="'+(n.gcal?'on':'')+'" data-a="gcal"><i></i></button></div>'+(n.gcal?'<div class="opts" style="margin-bottom:6px"><button data-a="gcsync">Refresh events</button></div>':'')+
  '<div class="hint" style="margin:6px 0 0">'+(window.claude?'Atlas chat uses your Claude plan (no API key) and counts against Settings → Usage. Only “Auto” messages use it; picking a type files directly and costs nothing.':'Offline copy: Calendar, Notion and Atlas AI only work in the claude.ai version. Everything else works here.')+'</div>'+
- (location.hostname==='localhost'?widgetsPanel()+updatesPanel():'')+calExportPanel()+'<h3>YOUR DATA</h3><div class="opts"><button data-a="export">Export JSON backup</button><button data-a="importpick">Import backup…</button></div><input type="file" id="imp" accept="application/json,.json" style="display:none">'+
+ (location.hostname==='localhost'?widgetsPanel()+updatesPanel():'')+calExportPanel()+aiKeyPanel()+'<h3>YOUR DATA</h3><div class="opts"><button data-a="export">Export JSON backup</button><button data-a="importpick">Import backup…</button></div><input type="file" id="imp" accept="application/json,.json" style="display:none">'+
  (U.importPending?'<div class="empty" style="margin-top:10px">Replace ALL current data with this backup ('+U.importPending.tasks.length+' tasks, '+U.importPending.goals.length+' goals)?<div style="display:flex;gap:8px;margin-top:8px"><button class="btn dng" data-a="importyes">Yes, replace</button><button class="btn" data-a="importno">No</button></div></div>':'')+
  '<div class="hint" style="margin-top:10px">Data lives in this browser (and a private backup copy in your Claude account). Export regularly.</div></div>'}
 
@@ -601,14 +689,14 @@ function renderAll(){renderNav();renderMain();renderPanels();updateBar();applyLo
 
 /* ---------- actions ---------- */
 const A={
-nav(d){if(d.to==='ideas'){U.modal={kind:'ideas'};renderPanels();return}if(U.day||U.proj){U.day=null;U.proj=null;renderMain()}const e=d.to==='top'?document.body:document.getElementById(d.to);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},
+nav(d){if(d.to==='meet'){U.meet='list';U.day=null;U.proj=null;engFetch();renderMain();window.scrollTo(0,0);return}if(d.to==='ideas'){U.modal={kind:'ideas'};renderPanels();return}if(U.day||U.proj||U.meet){U.day=null;U.proj=null;U.meet=null;renderMain()}const e=d.to==='top'?document.body:document.getElementById(d.to);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},
 settings(){U.settings=!U.settings;renderNav();renderPanels();if(U.settings&&location.hostname==='localhost')updFetch('/u/status')},
 usave(){const el=document.getElementById('upd_url');updFetch('/u/seturl?url='+encodeURIComponent((el&&el.value||'').trim()))},
 reload(){try{location.reload()}catch(_){}},
 async icsexport(){const r=buildICS(!!S.settings.notif.icsall);if(!r.n){toast('No dated tasks with a time to export. Nothing was saved.','Calendar export');return}const fn=await saveText('atlas-calendar-'+todayStr()+'.ics',r.text,'text/calendar');if(fn)toast('Saved '+fn+' with '+r.n+' event'+(r.n>1?'s':'')+(fn.endsWith('.txt')?'. Rename it to .ics before importing.':'. Import it in Google Calendar.'),'Calendar export');else toast('Could not save the file here. Nothing was exported.','Calendar export')},
-day(d){U.day=d.d;U.proj=null;renderMain();ensureDay(d.d);window.scrollTo(0,0)},
+day(d){U.day=d.d;U.proj=null;U.meet=null;renderMain();ensureDay(d.d);window.scrollTo(0,0)},
 dayback(){U.day=null;renderMain()},
-proj(d){U.proj=d.id;U.day=null;U.menu=null;U.confirm=false;renderMain();window.scrollTo(0,0)},
+proj(d){U.proj=d.id;U.day=null;U.meet=null;U.menu=null;U.confirm=false;renderMain();window.scrollTo(0,0)},
 projback(){U.proj=null;renderMain()},
 projadd(){const p=find('projects',U.proj);if(!p)return;const inp=document.getElementById('pt_title'),title=(inp&&inp.value||'').trim();if(!title){if(inp)inp.focus();return}const dt=gv('pt_date')||'';const it=createItem('Task',title);it.project=p.name;it.due=dt;it.status=dt?'Scheduled':'Inbox';touch(it);save();needTimeNote(it);renderMain();const n=document.getElementById('pt_title');if(n)n.focus()},
 dayshift(d){U.day=shiftDay(U.day,+d.d);renderMain();ensureDay(U.day)},
@@ -627,9 +715,30 @@ wopen(d){fetch('/w/open?kind='+d.k).catch(()=>{})},
 wall(d){fetch('/w/'+d.v+'all').catch(()=>{})},
 wcfg(){U.wcfg=!U.wcfg;renderMain()},
 wfilter(d){const c=wconf();c.filter=d.v;wsave(c);renderMain()},
-wtop(){const c=wconf();c.top=!c.top;wsave(c);wapply(c);renderMain()},
-whide(){fetch('/w/hide?kind='+W).catch(()=>{})},
-wclose(){fetch('/w/close?kind='+W).catch(()=>{});setTimeout(()=>{try{window.close()}catch(_){}},300)},
+wtop(){const c=wconf();c.top=!c.top;wsave(c);wapply(c);renderMain();if(POP)renderPopBar()},
+nmin(){nmsg('min')},
+nmax(){nmsg('max')},
+nclose(){nmsg('close')},
+whide(){fetch('/w/hide?kind='+WID).catch(()=>{})},
+wclose(){fetch('/w/close?kind='+WID).catch(()=>{});setTimeout(()=>{try{window.close()}catch(_){}},300)},
+mnew(d){const m=newMeeting(d.src);U.meet=m.id;engFetch();renderMain();window.scrollTo(0,0)},
+mopen(d){U.meet=d.id;engFetch();renderMain();window.scrollTo(0,0)},
+mback(){U.meet='list';renderMain()},
+msys(){U.recSys=!U.recSys;renderMain()},
+mrec(){recStart()},
+mstop(){recStop()},
+msum(){msummarize()},
+mact(d){const m=mfind(U.meet),a=m&&m.actions[+d.i];if(a&&!a.taskId){a.pick=!a.pick;save();renderMain()}},
+mfu(d){const m=mfind(U.meet),a=m&&m.followups[+d.i];if(a&&!a.fuId){a.pick=!a.pick;save();renderMain()}},
+mtasks(){mTasks()},
+mfus(){mFus()},
+async mcopy(){const m=mfind(U.meet);if(!m)return;try{await navigator.clipboard.writeText(meetMD(m));toast('Meeting notes copied.','Meeting')}catch(_){toast('Could not copy here. Use Export instead.','Meeting')}},
+async mexp(){const m=mfind(U.meet);if(!m)return;const fn=await saveText('meeting-'+m.date+'.md',meetMD(m),'text/markdown');toast(fn?'Saved '+fn:'Could not save the file here.','Meeting')},
+mdel(){U.mdel=true;renderMain()},
+mdelno(){U.mdel=false;renderMain()},
+mdelyes(){S.meetings=S.meetings.filter(x=>x.id!==U.meet);U.mdel=false;U.meet='list';save();renderMain()},
+aisave(){const el=document.getElementById('aikey'),v=(el&&el.value||'').trim();if(!v)return;try{localStorage.setItem('atlas_apikey',v)}catch(_){}toast('API key saved on this PC.','Settings');renderPanels()},
+aiclear(){try{localStorage.removeItem('atlas_apikey')}catch(_){}toast('API key removed.','Settings');renderPanels()},
 nsync(){nStart()},
 nyes(){nRun()},
 offyes(d){const t=find('tasks',d.id);$('#toastbox').innerHTML='';if(t){if(d.kind==='update')calUpdate(t);else calCreate(t)}},
@@ -677,6 +786,7 @@ document.addEventListener('click',e=>{
  if(U.menu&&!e.target.closest('.menu')&&!(el&&el.dataset.a==='menu')){U.menu=null;U.confirm=false;renderMain()}
  if(U.typeMenu&&!e.target.closest('#tm')&&!(el&&el.dataset.a==='typemenu')){U.typeMenu=false;updateBar()}
  if(!el)return;e.preventDefault();const f=A[el.dataset.a];if(f)f(el.dataset)});
+document.addEventListener('input',e=>{const f=e.target.dataset&&e.target.dataset.mf;if(f){const m=mfind(U.meet);if(m){m[f]=e.target.value;m.updated=Date.now();save()}return}});
 document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.w;if(!k)return;const c=wconf();c[k]=+e.target.value;wsave(c);applyWidgetLook(c);if(k==='opacity')wapply(c);const l=e.target.previousElementSibling;if(l&&l.lastElementChild)l.lastElementChild.textContent=e.target.value+(k==='size'?' px':'%')});
 window.addEventListener('storage',e=>{if(e.key==='atlas_v1'&&e.newValue){try{const o=JSON.parse(e.newValue);if(o&&Array.isArray(o.tasks)){S=o;renderMain()}}catch(_){}}});
 document.addEventListener('input',e=>{const r=e.target.dataset&&e.target.dataset.r;if(r){S.settings[r]=+e.target.value;save();applyLook();const l=e.target.previousElementSibling;if(l)l.lastElementChild.textContent=e.target.value+(r==='blur'?' px':'%')}});
@@ -685,16 +795,17 @@ document.addEventListener('change',e=>{
  if(e.target.id==='photo'&&e.target.files[0]){const fr=new FileReader();fr.onload=()=>{U.bgUrl=fr.result;applyLook();idb('w',fr.result).catch(()=>toast('Photo shown, but could not be saved for next time.','Background'))};fr.readAsDataURL(e.target.files[0])}
  if(e.target.id==='imp'&&e.target.files[0]){const fr=new FileReader();fr.onload=()=>{try{const o=JSON.parse(fr.result);if(!o||!Array.isArray(o.tasks)||!Array.isArray(o.goals)||!o.settings)throw 0;['projects','habits','ideas','notes','followups','chats'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[]});U.importPending=o;renderPanels()}catch(_){toast('That file is not an Atlas backup.','Import')}};fr.readAsText(e.target.files[0])}});
 document.addEventListener('keydown',e=>{
- if(e.key==='Escape'){if(U.modal){if(!(U.modal.kind==='sync'&&U.modal.st==='writing')){U.modal=null;renderPanels()}}else if(U.settings){A.settings()}else if(U.typeMenu){U.typeMenu=false;updateBar()}else if(U.chatOpen)closeChat();else if(U.proj||U.day){U.proj=null;U.day=null;renderMain()}return}
+ if(e.key==='Escape'){if(U.modal){if(!(U.modal.kind==='sync'&&U.modal.st==='writing')){U.modal=null;renderPanels()}}else if(U.settings){A.settings()}else if(U.typeMenu){U.typeMenu=false;updateBar()}else if(U.chatOpen)closeChat();else if(U.proj||U.day||U.meet){U.proj=null;U.day=null;U.meet=null;renderMain()}return}
  if(e.key==='Enter'&&e.target.id==='msg'){e.preventDefault();send()}if(e.key==='Enter'&&e.target.id==='pt_title'){e.preventDefault();A.projadd()}});
 $('#msg').addEventListener('focus',()=>{if(!U.chatOpen)openChat()});
 
 /* ---------- boot ---------- */
-setInterval(()=>{if(W){if(U.tm.running){U.tm.rem--;if(U.tm.rem<=0){U.tm.rem=0;U.tm.running=false;toast('Focus session complete. Take a short break.','Focus Timer',true)}paintTimer()}if((U.rc=(U.rc||0)+1)%30===0)renderMain();return}tickClock();U.rc=(U.rc||0)+1;if(U.rc%20===0)checkReminders();if(U.rc%60===0)updPoll();if(U.rc%300===0&&S.settings.notif.gcal){const k=monthOf(U.mo);fetchMonth(k.y,k.m,true)}if(U.tm.running){U.tm.rem--;if(U.tm.rem<=0){U.tm.rem=0;U.tm.running=false;toast('Focus session complete. Take a short break.','Focus Timer',true)}paintTimer()}
+setInterval(()=>{if(W){if(U.tm.running){U.tm.rem--;if(U.tm.rem<=0){U.tm.rem=0;U.tm.running=false;toast('Focus session complete. Take a short break.','Focus Timer',true)}paintTimer()}if((U.rc=(U.rc||0)+1)%30===0)renderMain();return}tickClock();U.rc=(U.rc||0)+1;if(U.rc%20===0)checkReminders();if(U.rc%60===0)updPoll();if(U.rec)updRec();if(U.recJob&&U.rc%3===0)pollRec();if(U.rc%300===0&&S.settings.notif.gcal){const k=monthOf(U.mo);fetchMonth(k.y,k.m,true)}if(U.tm.running){U.tm.rem--;if(U.tm.rem<=0){U.tm.rem=0;U.tm.running=false;toast('Focus session complete. Take a short break.','Focus Timer',true)}paintTimer()}
  if(todayStr()!==U.lastDay&&!U.modal)renderMain()},1000);
-function migrate(){if(!S.mig1){const g=S.goals.find(x=>x.title==='AI Learning'),p=S.projects.find(x=>x.name==='StudioOs');if(g&&p&&!p.goal)p.goal=g.id;S.mig1=true}}
+function migrate(){if(!S.meetings)S.meetings=[];if(!S.mig1){const g=S.goals.find(x=>x.title==='AI Learning'),p=S.projects.find(x=>x.name==='StudioOs');if(g&&p&&!p.goal)p.goal=g.id;S.mig1=true}}
 S=load()||seed();migrate();
-if(W){startWidget()}else{renderAll()}
+if(W){startWidget()}else{renderAll();if(POP)startPopup()}
+if(NATIVE)nativeChrome();
 if(!W)(async()=>{const had=!!load();if(!had){try{const d=await dbDoc();if(d){const s=await d.get();const v=s&&(s.data?s.data():s);if(v&&v.json){const o=JSON.parse(v.json);if(o&&o.tasks){S=o;migrate();renderAll()}}}}catch(_){}}
  ready=true;save();setTimeout(checkReminders,2500);if(S.settings.notif.gcal){const k=monthOf(0);fetchMonth(k.y,k.m,true)}
  if(S.settings.bg==='custom'){try{const u=await idb('r');if(u){U.bgUrl=u;applyLook()}}catch(_){}}})();
