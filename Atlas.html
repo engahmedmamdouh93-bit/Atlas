@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="atlas-version" content="26">
+<meta name="atlas-version" content="27">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-52 -52 104 104'%3E%3Crect x='-52' y='-52' width='104' height='104' rx='22' fill='%230B0A1A' stroke='%232A2550' stroke-width='1'/%3E%3Cpath d='M-28 30 L0 -32 L28 30' fill='none' stroke='%23A78BFA' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-15 12 l5 -9 l5 18 l5 -18 l5 18 l5 -18 l5 9' fill='none' stroke='%23FFB25B' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Atlas — Home</title>
@@ -192,7 +192,7 @@ body.widget [data-a="add"]{display:none}
 <div id="bar" role="search">
   <span style="position:relative"><button class="bb" id="typeBtn" aria-haspopup="true" aria-expanded="false" data-a="typemenu"></button></span>
  <input id="msg" type="text" placeholder="Ask Atlas anything…" aria-label="Message Atlas" autocomplete="off">
- <button class="bb" aria-label="Voice (later)" title="Voice comes later" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Voice</button>
+ <button class="bb" id="voiceBtn" aria-label="Dictate with your voice" title="Press, speak, press again" data-a="voice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Voice</button>
  <button class="send" aria-label="Send to Atlas" data-a="send"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-2-6z"/></svg></button>
 </div>
 <div id="panels"></div>
@@ -615,6 +615,32 @@ function renderMeet(){if(U.meet==='list'){const ms=(S.meetings||[]).slice().sort
  $('#main').innerHTML='<header><div><button class="btn" data-a="mback">← All meetings</button><h1 style="margin-top:14px"><span style="color:var(--white)">'+esc(m.title)+'</span></h1><p class="tag">'+fmtDate(m.date)+(m.status==='transcribing'?' · transcribing…':'')+'</p></div><div>'+(U.mdel?'<span class="hint" style="margin-right:6px">Delete this meeting?</span><button class="btn dng" data-a="mdelyes">Yes</button> <button class="btn" data-a="mdelno">No</button>':'<button class="btn dng" data-a="mdel">Delete meeting…</button>')+'</div></header>'+
  '<div class="row"><section class="c" style="flex:2 1 520px"><div class="hd"><h2>Transcript or notes</h2><button class="btn pri" data-a="msum"'+(U.msum?' disabled':'')+'>'+(U.msum?'Summarizing…':'Summarize with Atlas')+'</button></div><textarea data-mf="transcript" aria-label="Transcript or notes" placeholder="Paste a transcript from Teams, Meet, Zoom or Notion AI, type rough notes, or record the meeting." style="width:100%;min-height:300px;background:var(--inner);border:1px solid var(--bd);border-radius:12px;padding:12px;font-size:14px;color:var(--tx);resize:vertical">'+esc(m.transcript)+'</textarea>'+(ai?'':'<div class="hint" style="margin-top:8px;color:var(--orange)">Summaries need the claude.ai version, or an API key in Settings → Connections.</div>')+'</section>'+
  '<div style="flex:1 1 300px;display:flex;flex-direction:column;gap:20px"><section class="c"><div class="hd"><h2>Details</h2></div><label class="fld">Title<input data-mf="title" value="'+esc(m.title)+'"></label><div class="two"><label class="fld">Date<input type="date" data-mf="date" value="'+esc(m.date)+'"></label><label class="fld">Project<select data-mf="project">'+pr+'</select></label></div><label class="fld">Attendees<input data-mf="attendees" value="'+esc(m.attendees)+'" placeholder="Names, separated by commas"></label></section>'+recCardHTML(m)+'</div></div>'+res}
+/* ---------- voice dictation into the chat bar (local Whisper) ---------- */
+const VSVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+function paintVoice(txt,on){const b=document.getElementById('voiceBtn');if(!b)return;b.innerHTML=(on?'<span class="dot" style="background:#FF4D6D"></span>':VSVG)+txt;b.setAttribute('aria-pressed',!!on)}
+async function captureOn(streams,id){const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC({sampleRate:16000});try{await ac.resume()}catch(_){}
+ const mix=ac.createGain();streams.forEach(s=>{if(s.getAudioTracks().length)ac.createMediaStreamSource(new MediaStream(s.getAudioTracks())).connect(mix)});
+ const mute=ac.createGain();mute.gain.value=0;mute.connect(ac.destination);
+ const R={id,ac,streams,start:Date.now(),buf:[],bytes:0,level:0,frames:0,quiet:0,live:false,sending:Promise.resolve(),stopNode:()=>{}};
+ let ok=false;
+ try{await ac.audioWorklet.addModule(URL.createObjectURL(new Blob([WKC],{type:'application/javascript'})));const node=new AudioWorkletNode(ac,'atlas-rec');node.port.onmessage=e=>pcmIn(R,e.data);mix.connect(node);node.connect(mute);R.stopNode=()=>{node.port.onmessage=null;try{node.disconnect()}catch(_){}};ok=true}catch(_){}
+ if(!ok){const proc=ac.createScriptProcessor(4096,1,1);mix.connect(proc);proc.connect(mute);proc.onaudioprocess=e=>pcmIn(R,e.inputBuffer.getChannelData(0));R.stopNode=()=>{proc.onaudioprocess=null;try{proc.disconnect()}catch(_){}}}
+ try{await fetch('/rec/start?id='+encodeURIComponent(id),{method:'POST'})}catch(_){R.stopNode();streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));try{ac.close()}catch(_){}return null}
+ R.live=true;return R}
+async function voiceToggle(){if(U.voiceBusy)return;
+ if(U.voice){const R=U.voice;U.voice=null;U.voiceBusy=true;paintVoice('Transcribing…',false);R.live=false;R.stopNode();R.streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));try{R.ac.close()}catch(_){}flushRec(R);await R.sending;
+  if(R.frames/16000<0.7){toast('That was too short. Press Voice, speak, then press it again.','Voice');paintVoice('Voice',false);U.voiceBusy=false;return}
+  try{await fetch('/rec/stop?id='+encodeURIComponent(R.id),{method:'POST'});let done=false;
+   for(let i=0;i<150&&!done;i++){await new Promise(r=>setTimeout(r,1000));const s=await (await fetch('/rec/status?id='+encodeURIComponent(R.id))).json();
+    if(s.state==='done'){done=true;const tx=(s.text||'').trim(),inp=document.getElementById('msg');if(tx){inp.value=(inp.value?inp.value+' ':'')+tx;openChat()}else toast('No speech was heard. Try again closer to the microphone.','Voice')}
+    else if(s.state==='error'||s.state==='unknown'){done=true;toast(s.msg||'Voice transcription failed.','Voice')}}
+   if(!done)toast('Transcription is taking too long. Try a shorter phrase.','Voice')}
+  catch(_){toast('Could not reach the Atlas app.','Voice')}
+  paintVoice('Voice',false);U.voiceBusy=false;return}
+ if(location.hostname!=='localhost'){toast('Voice dictation works in the Atlas app on your PC.','Voice');return}
+ let mic;try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}})}catch(e){toast('Microphone is not available ('+((e&&e.message)||'blocked')+'). Check Windows Settings → Privacy → Microphone.','Voice');return}
+ const R=await captureOn([mic],'v_'+Date.now());if(!R){mic.getTracks().forEach(t=>t.stop());toast('Could not reach the Atlas app.','Voice');return}
+ U.voice=R;paintVoice('Stop',true)}
 function tickClock(){const tm=new Intl.DateTimeFormat('en-US',{timeZone:RZ,hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date()).split(' ');const a=$('#clk');if(a){a.textContent=tm[0];$('#clkap').textContent=tm[1];const h=+rp().hour;$('#greet').textContent=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening'}}
 
 /* ---------- background / theme ---------- */
@@ -739,6 +765,7 @@ mopen(d){U.meet=d.id;engFetch();renderMain();window.scrollTo(0,0)},
 mback(){U.meet='list';renderMain()},
 msys(){U.recSys=!U.recSys;renderMain()},
 mclean(){U.recClean=!U.recClean;renderMain()},
+voice(){voiceToggle()},
 mrec(){recStart()},
 mstop(){recStop()},
 async mretry(){const m=mfind(U.meet);if(!m||!m.recId)return;try{await fetch('/rec/stop?id='+encodeURIComponent(m.recId),{method:'POST'});U.recJob={id:m.recId,m:m.id,since:Date.now()};m.status='transcribing';m.err='';save();renderMain()}catch(_){toast('Could not reach the Atlas app.','Meeting')}},
