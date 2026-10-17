@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="atlas-version" content="23">
+<meta name="atlas-version" content="24">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-52 -52 104 104'%3E%3Crect x='-52' y='-52' width='104' height='104' rx='22' fill='%230B0A1A' stroke='%232A2550' stroke-width='1'/%3E%3Cpath d='M-28 30 L0 -32 L28 30' fill='none' stroke='%23A78BFA' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-15 12 l5 -9 l5 18 l5 -18 l5 18 l5 -18 l5 9' fill='none' stroke='%23FFB25B' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Atlas — Home</title>
@@ -578,10 +578,13 @@ async function recStop(){const R=U.rec;if(!R)return;R.proc.onaudioprocess=null;t
  renderMain()}
 function updRec(){const J=U.recJob,jt=document.getElementById('recJ');if(J&&jt){const s0=Math.floor((Date.now()-(J.since||Date.now()))/1000);jt.textContent='('+p2(Math.floor(s0/60))+':'+p2(s0%60)+' elapsed)'}const R=U.rec,t=document.getElementById('recT');if(!R||!t)return;const s=Math.floor((Date.now()-R.start)/1000);t.textContent=p2(Math.floor(s/60))+':'+p2(s%60);const l=document.getElementById('recL');if(l)l.style.width=Math.min(100,Math.round(R.level*400))+'%'}
 async function pollRec(){const j=U.recJob;if(!j||U.polling)return;U.polling=true;
- try{const r=await fetch('/rec/status?id='+encodeURIComponent(j.id)),s=await r.json(),m=mfind(j.m);
-  if(s.state==='unknown'||(Date.now()-(j.since||Date.now())>1800000)){const why=s.state==='unknown'?'Atlas was restarted before the transcript finished.':'Transcription is taking too long.';if(m){m.status='error';m.err=why;save()}U.recJob=null;toast(why+' Open the meeting and press Retry.','Meeting');if(U.meet)renderMain();U.polling=false;return}
-  if(s.state==='done'){if(m){m.transcript=(m.transcript?m.transcript+'\n\n':'')+s.text;m.status='ready';touch(m);save()}U.recJob=null;toast('Transcript ready'+(m?': '+m.title:'')+'. Open it and press Summarize.','Meeting',true);if(U.meet)renderMain()}
-  else if(s.state==='error'){if(m){m.status='error';m.err=s.msg||'Transcription failed.';save()}U.recJob=null;toast(s.msg||'Transcription failed.','Meeting');if(U.meet)renderMain()}}catch(_){}
+ const fail=(why)=>{const m=mfind(j.m);if(m){m.status='error';m.err=why;save()}U.recJob=null;U.pollFail=0;toast(why+' Open the meeting and press Retry.','Meeting');if(U.meet)renderMain()};
+ if(Date.now()-(j.since||Date.now())>1800000){fail('Transcription is taking too long.');U.polling=false;return}
+ try{const r=await fetch('/rec/status?id='+encodeURIComponent(j.id)),s=await r.json(),m=mfind(j.m);U.pollFail=0;
+  if(s.state==='unknown'){fail('Atlas was restarted before the transcript finished.')}
+  else if(s.state==='done'){if(m){m.transcript=(m.transcript?m.transcript+'\n\n':'')+s.text;m.status='ready';touch(m);save()}U.recJob=null;toast('Transcript ready'+(m?': '+m.title:'')+'. Open it and press Summarize.','Meeting',true);if(U.meet)renderMain()}
+  else if(s.state==='error'){const m2=mfind(j.m);if(m2){m2.status='error';m2.err=s.msg||'Transcription failed.';save()}U.recJob=null;toast(s.msg||'Transcription failed.','Meeting');if(U.meet)renderMain()}}
+ catch(_){U.pollFail=(U.pollFail||0)+1;if(U.pollFail>=5)fail('Lost contact with the Atlas app. Make sure Atlas is running (tray icon at the bottom right).')}
  U.polling=false}
 function recCardHTML(m){if(location.hostname!=='localhost')return '<section class="c" style="flex:1 1 280px"><div class="hd"><h2>Recorder</h2></div><div class="empty">Recording works in the Atlas app on your PC. Here you can paste a transcript or notes.</div></section>';
  const R=U.rec,job=U.recJob&&U.recJob.m===m.id;let b;
