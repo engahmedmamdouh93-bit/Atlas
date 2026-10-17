@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="atlas-version" content="25">
+<meta name="atlas-version" content="26">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-52 -52 104 104'%3E%3Crect x='-52' y='-52' width='104' height='104' rx='22' fill='%230B0A1A' stroke='%232A2550' stroke-width='1'/%3E%3Cpath d='M-28 30 L0 -32 L28 30' fill='none' stroke='%23A78BFA' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-15 12 l5 -9 l5 18 l5 -18 l5 18 l5 -18 l5 9' fill='none' stroke='%23FFB25B' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Atlas — Home</title>
@@ -565,7 +565,7 @@ const WKC="class P extends AudioWorkletProcessor{process(i){const c=i[0]&&i[0][0
 const fmtS=s=>p2(Math.floor(s/60))+':'+p2(s%60);
 function pcmIn(R,f){if(!R.live)return;const n=f.length,o=new Int16Array(n);let sum=0;for(let i=0;i<n;i++){const v=Math.max(-1,Math.min(1,f[i]));sum+=v*v;o[i]=v<0?v*32768:v*32767}R.level=Math.sqrt(sum/n);R.frames+=n;if(R.level<0.003)R.quiet+=n;R.buf.push(o);R.bytes+=n*2;if(R.bytes>=320000)flushRec(R)}
 async function recStart(){const m=mfind(U.meet);if(!m||U.rec)return;if(location.hostname!=='localhost'){toast('Recording works in the Atlas app on your PC.','Meeting');return}
- let mic;try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}catch(e){toast('Microphone is not available ('+((e&&e.message)||'blocked')+'). Check Windows Settings → Privacy → Microphone.','Meeting');return}
+ let mic;try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:!!U.recClean,noiseSuppression:!!U.recClean,autoGainControl:false}})}catch(e){toast('Microphone is not available ('+((e&&e.message)||'blocked')+'). Check Windows Settings → Privacy → Microphone.','Meeting');return}
  const streams=[mic];
  if(U.recSys){try{const d=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});if(d.getAudioTracks().length)streams.push(d);else toast('No system audio was shared. Tick “share audio” when you pick the screen. Recording your microphone only.','Meeting')}catch(_){toast('Screen or system audio is not available here. Recording your microphone only.','Meeting')}}
  const id=m.id+'_'+Date.now();const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC({sampleRate:16000});try{await ac.resume()}catch(_){}
@@ -600,7 +600,7 @@ function recCardHTML(m){if(location.hostname!=='localhost')return '<section clas
  else if(R)b='<div class="empty">Another meeting is being recorded.</div>';
  else if(job)b='<div class="empty">Transcribing… <b id="recJ"></b> A short recording takes under a minute; long meetings take longer. You can keep using Atlas.</div>';
  else if(m.status==='error'||(m.status==='transcribing'&&!job))b='<div class="empty" style="border-color:var(--orange)">'+esc(m.err||'The transcript did not finish.')+'</div><div class="opts" style="margin-top:10px">'+(m.recId?'<button data-a="mretry">Retry transcription</button>':'')+'<button data-a="mclear">Record again</button></div>';
- else b='<div class="sw" style="padding:0 0 10px"><span>Also capture other people\'s voices<small>Share your screen and tick “share audio”. Otherwise only your microphone is recorded.</small></span><button role="switch" aria-checked="'+!!U.recSys+'" aria-label="Capture system audio" class="'+(U.recSys?'on':'')+'" data-a="msys"><i></i></button></div><button class="btn pri" data-a="mrec">● Start recording</button>'+(U.eng&&U.eng.whisper===false?'<div class="hint" style="margin-top:8px;color:var(--orange)">Transcription engine not installed. Audio is still saved; run the build file again and answer Y to voice transcription.</div>':'');
+ else b='<div class="sw" style="padding:0 0 6px"><span>Online meeting mode<small>Records the sound your PC plays (the other people) plus your microphone. When you press Start, choose “Entire screen” and tick “Share system audio”. Leave it off for in-person meetings.</small></span><button role="switch" aria-checked="'+!!U.recSys+'" aria-label="Online meeting mode" class="'+(U.recSys?'on':'')+'" data-a="msys"><i></i></button></div><div class="sw" style="padding:0 0 10px"><span>Clean up my voice<small>Removes echo and background noise. Turn it on only in a noisy room: it can erase sound coming from speakers.</small></span><button role="switch" aria-checked="'+!!U.recClean+'" aria-label="Clean up my voice" class="'+(U.recClean?'on':'')+'" data-a="mclean"><i></i></button></div><button class="btn pri" data-a="mrec">● Start recording</button>'+(U.eng&&U.eng.whisper===false?'<div class="hint" style="margin-top:8px;color:var(--orange)">Transcription engine not installed. Audio is still saved; run the build file again and answer Y to voice transcription.</div>':'');
  return '<section class="c" style="flex:1 1 280px"><div class="hd"><h2>Recorder</h2></div>'+b+'<div class="hint" style="margin-top:10px">Tell people before you record them.</div></section>'}
 function renderMeet(){if(U.meet==='list'){const ms=(S.meetings||[]).slice().sort((a,b)=>b.created-a.created);
   $('#main').innerHTML='<header><div><h1><span style="color:var(--white)">Meetings</span></h1><p class="tag">Record · transcribe · summarize · turn into tasks</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" data-a="mnew" data-src="rec">● Record a meeting</button><button class="btn" data-a="mnew" data-src="paste">Paste transcript or notes</button></div></header><div class="row"><section class="c" style="flex:1 1 100%">'+
@@ -738,6 +738,7 @@ mnew(d){const m=newMeeting(d.src);U.meet=m.id;engFetch();renderMain();window.scr
 mopen(d){U.meet=d.id;engFetch();renderMain();window.scrollTo(0,0)},
 mback(){U.meet='list';renderMain()},
 msys(){U.recSys=!U.recSys;renderMain()},
+mclean(){U.recClean=!U.recClean;renderMain()},
 mrec(){recStart()},
 mstop(){recStop()},
 async mretry(){const m=mfind(U.meet);if(!m||!m.recId)return;try{await fetch('/rec/stop?id='+encodeURIComponent(m.recId),{method:'POST'});U.recJob={id:m.recId,m:m.id,since:Date.now()};m.status='transcribing';m.err='';save();renderMain()}catch(_){toast('Could not reach the Atlas app.','Meeting')}},
