@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="atlas-version" content="24">
+<meta name="atlas-version" content="25">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-52 -52 104 104'%3E%3Crect x='-52' y='-52' width='104' height='104' rx='22' fill='%230B0A1A' stroke='%232A2550' stroke-width='1'/%3E%3Cpath d='M-28 30 L0 -32 L28 30' fill='none' stroke='%23A78BFA' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-15 12 l5 -9 l5 18 l5 -18 l5 18 l5 -18 l5 9' fill='none' stroke='%23FFB25B' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Atlas — Home</title>
@@ -561,20 +561,28 @@ function mTasks(){const m=mfind(U.meet);if(!m)return;let n=0,dup=0;const old=U.p
 function mFus(){const m=mfind(U.meet);if(!m)return;let n=0;m.followups.forEach(f=>{if(!f.pick||f.fuId)return;const ex=S.followups.find(x=>sameTitle(x.name,f.name));if(ex){f.fuId=ex.id;return}const it=createItem('Follow-up',f.name);it.context=f.context||('From meeting: '+m.title);touch(it);f.fuId=it.id;n++});touch(m);save();renderMain();toast('Added '+n+' follow-up'+(n===1?'':'s')+'.','Meeting')}
 function meetMD(m){return '# '+m.title+'\n'+m.date+(m.attendees?' · '+m.attendees:'')+(m.project?' · '+m.project:'')+'\n\n## Summary\n'+(m.summary||'(not summarized)')+'\n\n## Decisions\n'+(m.decisions.length?m.decisions.map(x=>'- '+x).join('\n'):'-')+'\n\n## Action items\n'+(m.actions.length?m.actions.map(a=>'- [ ] '+a.title+(a.owner?' ('+a.owner+')':'')+(a.due?' — '+a.due:'')).join('\n'):'-')+'\n\n## Follow-ups\n'+(m.followups.length?m.followups.map(f=>'- '+f.name+': '+f.context).join('\n'):'-')+'\n\n## Transcript\n'+(m.transcript||'')+'\n'}
 /* recorder: 16 kHz mono PCM streamed to the Atlas app on this PC, then transcribed with local Whisper */
+const WKC="class P extends AudioWorkletProcessor{process(i){const c=i[0]&&i[0][0];if(c&&c.length){this.port.postMessage(c.slice(0))}return true}}registerProcessor('atlas-rec',P)";
+const fmtS=s=>p2(Math.floor(s/60))+':'+p2(s%60);
+function pcmIn(R,f){if(!R.live)return;const n=f.length,o=new Int16Array(n);let sum=0;for(let i=0;i<n;i++){const v=Math.max(-1,Math.min(1,f[i]));sum+=v*v;o[i]=v<0?v*32768:v*32767}R.level=Math.sqrt(sum/n);R.frames+=n;if(R.level<0.003)R.quiet+=n;R.buf.push(o);R.bytes+=n*2;if(R.bytes>=320000)flushRec(R)}
 async function recStart(){const m=mfind(U.meet);if(!m||U.rec)return;if(location.hostname!=='localhost'){toast('Recording works in the Atlas app on your PC.','Meeting');return}
  let mic;try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}catch(e){toast('Microphone is not available ('+((e&&e.message)||'blocked')+'). Check Windows Settings → Privacy → Microphone.','Meeting');return}
  const streams=[mic];
  if(U.recSys){try{const d=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});if(d.getAudioTracks().length)streams.push(d);else toast('No system audio was shared. Tick “share audio” when you pick the screen. Recording your microphone only.','Meeting')}catch(_){toast('Screen or system audio is not available here. Recording your microphone only.','Meeting')}}
  const id=m.id+'_'+Date.now();const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC({sampleRate:16000});try{await ac.resume()}catch(_){}
  const mix=ac.createGain();streams.forEach(s=>{if(s.getAudioTracks().length)ac.createMediaStreamSource(new MediaStream(s.getAudioTracks())).connect(mix)});
- const proc=ac.createScriptProcessor(4096,1,1),mute=ac.createGain();mute.gain.value=0;mix.connect(proc);proc.connect(mute);mute.connect(ac.destination);
- const R={id,m:m.id,ac,proc,streams,start:Date.now(),buf:[],bytes:0,level:0,sending:Promise.resolve()};
- try{await fetch('/rec/start?id='+encodeURIComponent(id),{method:'POST'})}catch(_){streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));toast('Could not reach the Atlas app to save the recording.','Meeting');return}
- proc.onaudioprocess=e=>{const f=e.inputBuffer.getChannelData(0),n=f.length,o=new Int16Array(n);let sum=0;for(let i=0;i<n;i++){const v=Math.max(-1,Math.min(1,f[i]));sum+=v*v;o[i]=v<0?v*32768:v*32767}R.level=Math.sqrt(sum/n);R.buf.push(o);R.bytes+=n*2;if(R.bytes>=320000)flushRec(R)};
- U.rec=R;m.status='recording';save();renderMain()}
+ const mute=ac.createGain();mute.gain.value=0;mute.connect(ac.destination);
+ const R={id,m:m.id,ac,streams,start:Date.now(),buf:[],bytes:0,level:0,frames:0,quiet:0,live:false,sending:Promise.resolve(),stopNode:()=>{}};
+ let ok=false;
+ try{await ac.audioWorklet.addModule(URL.createObjectURL(new Blob([WKC],{type:'application/javascript'})));const node=new AudioWorkletNode(ac,'atlas-rec');node.port.onmessage=e=>pcmIn(R,e.data);mix.connect(node);node.connect(mute);R.stopNode=()=>{node.port.onmessage=null;try{node.disconnect()}catch(_){}};ok=true}catch(_){}
+ if(!ok){const proc=ac.createScriptProcessor(4096,1,1);mix.connect(proc);proc.connect(mute);proc.onaudioprocess=e=>pcmIn(R,e.inputBuffer.getChannelData(0));R.stopNode=()=>{proc.onaudioprocess=null;try{proc.disconnect()}catch(_){}}}
+ try{await fetch('/rec/start?id='+encodeURIComponent(id),{method:'POST'})}catch(_){R.stopNode();streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));try{ac.close()}catch(_){}toast('Could not reach the Atlas app to save the recording.','Meeting');return}
+ R.live=true;U.rec=R;m.status='recording';save();renderMain()}
 function flushRec(R){if(!R.buf.length)return;const all=new Int16Array(R.bytes/2);let o=0;R.buf.forEach(b=>{all.set(b,o);o+=b.length});R.buf=[];R.bytes=0;R.sending=R.sending.then(()=>fetch('/rec/chunk?id='+encodeURIComponent(R.id),{method:'POST',body:all.buffer})).catch(()=>{})}
-async function recStop(){const R=U.rec;if(!R)return;R.proc.onaudioprocess=null;try{R.proc.disconnect()}catch(_){}R.streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));try{R.ac.close()}catch(_){}flushRec(R);await R.sending;const m=mfind(R.m);U.rec=null;
- try{await fetch('/rec/stop?id='+encodeURIComponent(R.id),{method:'POST'});U.recJob={id:R.id,m:R.m,since:Date.now()};if(m){m.status='transcribing';m.recId=R.id;touch(m);save()}}catch(_){toast('Could not reach the Atlas app to transcribe. The audio may be incomplete.','Meeting')}
+async function recStop(){const R=U.rec;if(!R)return;R.live=false;R.stopNode();R.streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));try{R.ac.close()}catch(_){}flushRec(R);await R.sending;const m=mfind(R.m);U.rec=null;
+ const el=Math.round((Date.now()-R.start)/1000),got=Math.round(R.frames/16000),quiet=Math.round(100*R.quiet/Math.max(1,R.frames));
+ try{await fetch('/rec/stop?id='+encodeURIComponent(R.id),{method:'POST'});U.recJob={id:R.id,m:R.m,since:Date.now()};if(m){m.status='transcribing';m.recId=R.id;touch(m);save()}
+  toast('Recorded '+fmtS(got)+' of audio in '+fmtS(el)+' ('+quiet+'% quiet). Transcribing…'+(got<el*0.9?' Some audio was lost: keep the Atlas window open while recording.':''),'Meeting')}
+ catch(_){toast('Could not reach the Atlas app to transcribe. The audio may be incomplete.','Meeting')}
  renderMain()}
 function updRec(){const J=U.recJob,jt=document.getElementById('recJ');if(J&&jt){const s0=Math.floor((Date.now()-(J.since||Date.now()))/1000);jt.textContent='('+p2(Math.floor(s0/60))+':'+p2(s0%60)+' elapsed)'}const R=U.rec,t=document.getElementById('recT');if(!R||!t)return;const s=Math.floor((Date.now()-R.start)/1000);t.textContent=p2(Math.floor(s/60))+':'+p2(s%60);const l=document.getElementById('recL');if(l)l.style.width=Math.min(100,Math.round(R.level*400))+'%'}
 async function pollRec(){const j=U.recJob;if(!j||U.polling)return;U.polling=true;
