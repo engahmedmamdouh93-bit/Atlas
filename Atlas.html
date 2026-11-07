@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="atlas-version" content="27">
+<meta name="atlas-version" content="30">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-52 -52 104 104'%3E%3Crect x='-52' y='-52' width='104' height='104' rx='22' fill='%230B0A1A' stroke='%232A2550' stroke-width='1'/%3E%3Cpath d='M-28 30 L0 -32 L28 30' fill='none' stroke='%23A78BFA' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-15 12 l5 -9 l5 18 l5 -18 l5 18 l5 -18 l5 9' fill='none' stroke='%23FFB25B' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Atlas — Home</title>
@@ -565,10 +565,10 @@ const WKC="class P extends AudioWorkletProcessor{process(i){const c=i[0]&&i[0][0
 const fmtS=s=>p2(Math.floor(s/60))+':'+p2(s%60);
 function pcmIn(R,f){if(!R.live)return;const n=f.length,o=new Int16Array(n);let sum=0;for(let i=0;i<n;i++){const v=Math.max(-1,Math.min(1,f[i]));sum+=v*v;o[i]=v<0?v*32768:v*32767}R.level=Math.sqrt(sum/n);R.frames+=n;if(R.level<0.003)R.quiet+=n;R.buf.push(o);R.bytes+=n*2;if(R.bytes>=320000)flushRec(R)}
 async function recStart(){const m=mfind(U.meet);if(!m||U.rec)return;if(location.hostname!=='localhost'){toast('Recording works in the Atlas app on your PC.','Meeting');return}
- let mic;try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:!!U.recClean,noiseSuppression:!!U.recClean,autoGainControl:false}})}catch(e){toast('Microphone is not available ('+((e&&e.message)||'blocked')+'). Check Windows Settings → Privacy → Microphone.','Meeting');return}
+ let mic;try{mic=await getMic({echoCancellation:!!U.recClean,noiseSuppression:!!U.recClean,autoGainControl:false})}catch(e){U.lastMicErr=micErr(e);toast(U.lastMicErr+' Open Settings → Test microphone for help.','Meeting');return}
  const streams=[mic];
  if(U.recSys){try{const d=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});if(d.getAudioTracks().length)streams.push(d);else toast('No system audio was shared. Tick “share audio” when you pick the screen. Recording your microphone only.','Meeting')}catch(_){toast('Screen or system audio is not available here. Recording your microphone only.','Meeting')}}
- const id=m.id+'_'+Date.now();const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC({sampleRate:16000});try{await ac.resume()}catch(_){}
+ const id=m.id+'_'+Date.now()+'_'+langCode();const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC({sampleRate:16000});try{await ac.resume()}catch(_){}
  const mix=ac.createGain();streams.forEach(s=>{if(s.getAudioTracks().length)ac.createMediaStreamSource(new MediaStream(s.getAudioTracks())).connect(mix)});
  const mute=ac.createGain();mute.gain.value=0;mute.connect(ac.destination);
  const R={id,m:m.id,ac,streams,start:Date.now(),buf:[],bytes:0,level:0,frames:0,quiet:0,live:false,sending:Promise.resolve(),stopNode:()=>{}};
@@ -590,7 +590,7 @@ async function pollRec(){const j=U.recJob;if(!j||U.polling)return;U.polling=true
  if(Date.now()-(j.since||Date.now())>1800000){fail('Transcription is taking too long.');U.polling=false;return}
  try{const r=await fetch('/rec/status?id='+encodeURIComponent(j.id)),s=await r.json(),m=mfind(j.m);U.pollFail=0;
   if(s.state==='unknown'){fail('Atlas was restarted before the transcript finished.')}
-  else if(s.state==='done'){if(m){m.transcript=(m.transcript?m.transcript+'\n\n':'')+s.text;m.status='ready';touch(m);save()}U.recJob=null;toast('Transcript ready'+(m?': '+m.title:'')+'. Open it and press Summarize.','Meeting',true);if(U.meet)renderMain()}
+  else if(s.state==='done'){const cl=cleanTranscript(s.text);if(m){m.transcript=(m.transcript?m.transcript+'\n\n':'')+cl.text;m.status='ready';touch(m);save()}U.recJob=null;toast('Transcript ready'+(m?': '+m.title:'')+(cl.removed?' ('+cl.removed+' repeated lines removed)':'')+'. Open it and press Summarize.','Meeting',true);if(U.meet)renderMain()}
   else if(s.state==='error'){const m2=mfind(j.m);if(m2){m2.status='error';m2.err=s.msg||'Transcription failed.';save()}U.recJob=null;toast(s.msg||'Transcription failed.','Meeting');if(U.meet)renderMain()}}
  catch(_){U.pollFail=(U.pollFail||0)+1;if(U.pollFail>=5)fail('Lost contact with the Atlas app. Make sure Atlas is running (tray icon at the bottom right).')}
  U.polling=false}
@@ -600,7 +600,7 @@ function recCardHTML(m){if(location.hostname!=='localhost')return '<section clas
  else if(R)b='<div class="empty">Another meeting is being recorded.</div>';
  else if(job)b='<div class="empty">Transcribing… <b id="recJ"></b> A short recording takes under a minute; long meetings take longer. You can keep using Atlas.</div>';
  else if(m.status==='error'||(m.status==='transcribing'&&!job))b='<div class="empty" style="border-color:var(--orange)">'+esc(m.err||'The transcript did not finish.')+'</div><div class="opts" style="margin-top:10px">'+(m.recId?'<button data-a="mretry">Retry transcription</button>':'')+'<button data-a="mclear">Record again</button></div>';
- else b='<div class="sw" style="padding:0 0 6px"><span>Online meeting mode<small>Records the sound your PC plays (the other people) plus your microphone. When you press Start, choose “Entire screen” and tick “Share system audio”. Leave it off for in-person meetings.</small></span><button role="switch" aria-checked="'+!!U.recSys+'" aria-label="Online meeting mode" class="'+(U.recSys?'on':'')+'" data-a="msys"><i></i></button></div><div class="sw" style="padding:0 0 10px"><span>Clean up my voice<small>Removes echo and background noise. Turn it on only in a noisy room: it can erase sound coming from speakers.</small></span><button role="switch" aria-checked="'+!!U.recClean+'" aria-label="Clean up my voice" class="'+(U.recClean?'on':'')+'" data-a="mclean"><i></i></button></div><button class="btn pri" data-a="mrec">● Start recording</button>'+(U.eng&&U.eng.whisper===false?'<div class="hint" style="margin-top:8px;color:var(--orange)">Transcription engine not installed. Audio is still saved; run the build file again and answer Y to voice transcription.</div>':'');
+ else b='<div class="sw" style="padding:0 0 6px"><span>Online meeting mode<small>Records the sound your PC plays (the other people) plus your microphone. When you press Start, choose “Entire screen” and tick “Share system audio”. Leave it off for in-person meetings.</small></span><button role="switch" aria-checked="'+!!U.recSys+'" aria-label="Online meeting mode" class="'+(U.recSys?'on':'')+'" data-a="msys"><i></i></button></div><div class="sw" style="padding:0 0 10px"><span>Clean up my voice<small>Removes echo and background noise. Turn it on only in a noisy room: it can erase sound coming from speakers.</small></span><button role="switch" aria-checked="'+!!U.recClean+'" aria-label="Clean up my voice" class="'+(U.recClean?'on':'')+'" data-a="mclean"><i></i></button></div>'+langRow()+'<button class="btn pri" data-a="mrec">● Start recording</button>'+(U.eng&&U.eng.whisper===false?'<div class="hint" style="margin-top:8px;color:var(--orange)">Transcription engine not installed. Audio is still saved; run the build file again and answer Y to voice transcription.</div>':'');
  return '<section class="c" style="flex:1 1 280px"><div class="hd"><h2>Recorder</h2></div>'+b+'<div class="hint" style="margin-top:10px">Tell people before you record them.</div></section>'}
 function renderMeet(){if(U.meet==='list'){const ms=(S.meetings||[]).slice().sort((a,b)=>b.created-a.created);
   $('#main').innerHTML='<header><div><h1><span style="color:var(--white)">Meetings</span></h1><p class="tag">Record · transcribe · summarize · turn into tasks</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" data-a="mnew" data-src="rec">● Record a meeting</button><button class="btn" data-a="mnew" data-src="paste">Paste transcript or notes</button></div></header><div class="row"><section class="c" style="flex:1 1 100%">'+
@@ -632,15 +632,64 @@ async function voiceToggle(){if(U.voiceBusy)return;
   if(R.frames/16000<0.7){toast('That was too short. Press Voice, speak, then press it again.','Voice');paintVoice('Voice',false);U.voiceBusy=false;return}
   try{await fetch('/rec/stop?id='+encodeURIComponent(R.id),{method:'POST'});let done=false;
    for(let i=0;i<150&&!done;i++){await new Promise(r=>setTimeout(r,1000));const s=await (await fetch('/rec/status?id='+encodeURIComponent(R.id))).json();
-    if(s.state==='done'){done=true;const tx=(s.text||'').trim(),inp=document.getElementById('msg');if(tx){inp.value=(inp.value?inp.value+' ':'')+tx;openChat()}else toast('No speech was heard. Try again closer to the microphone.','Voice')}
+    if(s.state==='done'){done=true;const tx=cleanTranscript(s.text||'').text.trim(),inp=document.getElementById('msg');if(tx){inp.value=(inp.value?inp.value+' ':'')+tx;openChat()}else toast('No speech was heard. Try again closer to the microphone.','Voice')}
     else if(s.state==='error'||s.state==='unknown'){done=true;toast(s.msg||'Voice transcription failed.','Voice')}}
    if(!done)toast('Transcription is taking too long. Try a shorter phrase.','Voice')}
   catch(_){toast('Could not reach the Atlas app.','Voice')}
   paintVoice('Voice',false);U.voiceBusy=false;return}
  if(location.hostname!=='localhost'){toast('Voice dictation works in the Atlas app on your PC.','Voice');return}
- let mic;try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}})}catch(e){toast('Microphone is not available ('+((e&&e.message)||'blocked')+'). Check Windows Settings → Privacy → Microphone.','Voice');return}
- const R=await captureOn([mic],'v_'+Date.now());if(!R){mic.getTracks().forEach(t=>t.stop());toast('Could not reach the Atlas app.','Voice');return}
+ let mic;try{mic=await getMic({echoCancellation:true,noiseSuppression:true,autoGainControl:true})}catch(e){U.lastMicErr=micErr(e);toast(U.lastMicErr+' Open Settings → Test microphone for help.','Voice');return}
+ const R=await captureOn([mic],'v_'+Date.now()+'_'+langCode());if(!R){mic.getTracks().forEach(t=>t.stop());toast('Could not reach the Atlas app.','Voice');return}
  U.voice=R;paintVoice('Stop',true)}
+/* ---------- speech language ---------- */
+const LANGS=[['auto','Auto'],['en','English'],['ar','Arabic'],['mx','Arabic + English']];
+const langCode=()=>({auto:'au',en:'en',ar:'ar',mx:'mx'})[(S.settings&&S.settings.lang)||'auto']||'au';
+function langRow(){const cur=(S.settings&&S.settings.lang)||'auto';return '<div class="hint" style="margin:8px 0 4px">Speech language</div><div class="opts" style="margin-bottom:10px">'+LANGS.map(l=>'<button class="'+(cur===l[0]?'on':'')+'" aria-pressed="'+(cur===l[0])+'" data-a="mlang" data-v="'+l[0]+'">'+l[1]+'</button>').join('')+'</div>'}
+function langPanel(){return '<h3>SPEECH LANGUAGE</h3>'+langRow()+'<div class="hint">Used by the Voice button and meeting recordings. Pick “Arabic + English” if you mix both in one sentence. “Auto” guesses, and often picks Arabic.</div>'}
+/* Whisper sometimes gets stuck repeating one phrase; collapse those loops */
+function cleanTranscript(t){const norm=s=>s.replace(/["“”«»'`.,،؟?!\s]+/g,' ').trim().toLowerCase();let removed=0,prev='';const out=[];
+ String(t||'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean).forEach(l=>{const x=l.replace(/(.{3,80}?)(?:\s*\1){2,}/g,'$1');if(x!==l)removed++;const n=norm(x);if(n&&n===prev){removed++;return}prev=n;out.push(x)});
+ return{text:out.join('\n'),removed}}
+/* ---------- microphone test and shared helper (Step 1) ---------- */
+function micErr(e){const n=(e&&e.name)||'Error',m={
+ NotAllowedError:'Blocked. Allow the microphone: in Windows go to Settings → Privacy & security → Microphone and turn on “Microphone access” and “Let desktop apps access your microphone”. In a browser or on a phone, tap the lock icon next to the address and allow Microphone.',
+ PermissionDeniedError:'Blocked. Allow the microphone in Windows Settings → Privacy & security → Microphone, or tap the lock icon in the browser.',
+ NotFoundError:'No microphone was found. Plug one in, or choose another input in Windows Sound settings.',
+ NotReadableError:'The microphone is busy or unavailable. Close apps that use it (Teams, Zoom, Meet). With a Bluetooth headset, switch the Windows Sound input to the laptop microphone.',
+ OverconstrainedError:'The chosen microphone is not available. Pick “System default”.',
+ SecurityError:'The page may not use the microphone here. It needs https:// or localhost.',
+ AbortError:'The microphone could not start. Try again.',
+ TypeError:'This page cannot use the microphone: it needs https:// or localhost.'}[n];
+ return n+': '+(m||('Unexpected error. '+((e&&e.message)||'')))}
+async function getMic(extra){const base=Object.assign({},extra||{}),id=S.settings.micId;
+ try{return await navigator.mediaDevices.getUserMedia({audio:id?Object.assign({deviceId:{exact:id}},base):base})}
+ catch(e){if(id&&(e.name==='OverconstrainedError'||e.name==='NotFoundError')){toast('The chosen microphone is not available. Using the default one.','Microphone');return await navigator.mediaDevices.getUserMedia({audio:base})}throw e}}
+async function micDevices(){try{return (await navigator.mediaDevices.enumerateDevices()).filter(x=>x.kind==='audioinput')}catch(_){return []}}
+async function micPerm(){const M=U.mic=U.mic||{};try{M.perm=(await navigator.permissions.query({name:'microphone'})).state}catch(_){M.perm='not reported'}}
+async function micRefresh(){const M=U.mic=U.mic||{};M.devices=await micDevices();await micPerm();if(U.modal&&U.modal.kind==='mic')renderPanels()}
+function micStop(){const M=U.mic;if(!M)return;M.running=false;clearTimeout(M.tm);try{M.stream&&M.stream.getTracks().forEach(t=>t.stop())}catch(_){}try{M.ac&&M.ac.close()}catch(_){}M.stream=null;M.ac=null}
+async function micStart(){const M=U.mic=U.mic||{};if(M.running)return;M.err='';M.peak=0;M.status='Asking for the microphone…';renderPanels();
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){M.err='This page cannot use the microphone: it needs https:// or localhost. Open Atlas from the GitHub Pages link or the Windows app.';M.status='';renderPanels();return}
+ try{const st=await getMic({echoCancellation:false,noiseSuppression:false,autoGainControl:false});
+  const AC=window.AudioContext||window.webkitAudioContext,ac=new AC(),src=ac.createMediaStreamSource(st),an=ac.createAnalyser();an.fftSize=1024;src.connect(an);
+  const tr=st.getAudioTracks()[0],se=(tr&&tr.getSettings&&tr.getSettings())||{};
+  M.stream=st;M.ac=ac;M.running=true;M.info={label:tr&&tr.label,rate:se.sampleRate,ch:se.channelCount,acRate:ac.sampleRate};M.status='Listening… say a few words.';
+  M.devices=await micDevices();await micPerm();renderPanels();
+  const buf=new Float32Array(an.fftSize);
+  const tick=()=>{if(!M.running)return;an.getFloatTimeDomainData(buf);let s=0;for(let i=0;i<buf.length;i++)s+=buf[i]*buf[i];const lv=Math.sqrt(s/buf.length);if(lv>(M.peak||0))M.peak=lv;
+   const el=document.getElementById('micL');if(el)el.style.width=Math.min(100,Math.round(lv*500))+'%';
+   const t2=document.getElementById('micS');if(t2)t2.textContent=M.peak>0.02?'Hearing you ✓ (peak '+M.peak.toFixed(3)+')':'Listening… no sound yet. Speak, or check that the right microphone is selected.';
+   M.tm=setTimeout(tick,100)};tick()}
+ catch(e){M.err=micErr(e);U.lastMicErr=M.err;M.status='';M.running=false;M.devices=await micDevices();await micPerm();renderPanels()}}
+function micReport(){const M=U.mic||{},i=M.info||{};
+ return ['Origin: '+(location.origin||location.href),'Secure context: '+(window.isSecureContext?'yes':'no'),'Microphone API: '+((navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)?'available':'NOT available'),'Permission: '+(M.perm||'unknown'),'AudioWorklet: '+(typeof AudioWorkletNode!=='undefined'?'yes':'no'),'Microphones found: '+((M.devices||[]).length),'Input used: '+(i.label||'(not started)'),'Device rate: '+(i.rate||'?')+' Hz, channels '+(i.ch||'?'),'Audio engine rate: '+(i.acRate||'?')+' Hz','Peak level: '+((M.peak||0).toFixed(3)),'Last error: '+(U.lastMicErr||M.err||'none'),'Atlas version: '+AV].join('\n')}
+function micPanel(){return '<h3>MICROPHONE</h3><div class="opts"><button data-a="micopen">Test microphone</button></div><div class="hint" style="margin-top:6px">Shows whether Atlas can hear you, explains any problem in plain words, and lets you choose which microphone to use.</div>'}
+function micModalHTML(){const M=U.mic||{},devs=M.devices||[];
+ const opts=['<option value="">System default</option>'].concat(devs.map(d=>'<option value="'+esc(d.deviceId)+'"'+(d.deviceId===S.settings.micId?' selected':'')+'>'+esc(d.label||'Microphone (name shown after you allow access)')+'</option>')).join('');
+ return '<div id="ov" data-a="micx"></div><div class="modal" role="dialog" aria-label="Test microphone"><div class="hd"><h2>Test microphone</h2><button class="ib" data-a="micx" aria-label="Close">✕</button></div><label class="fld">Microphone<select id="micsel">'+opts+'</select></label><div class="bar" style="margin:6px 0 10px"><div id="micL" style="width:0%;background:#3DD68C"></div></div><div class="hint" id="micS">'+esc(M.status||'Press Start test, then say a few words.')+'</div>'+
+ (M.err?'<div class="empty" style="border-color:var(--orange);margin-top:10px">'+esc(M.err)+'</div>':'')+
+ '<div class="opts" style="margin-top:12px">'+(M.running?'<button class="on" data-a="micstop">■ Stop test</button>':'<button data-a="micstart">▶ Start test</button>')+'<button data-a="micdevs">Refresh devices</button><button data-a="miccopy">Copy report</button></div><div class="hint" style="margin-top:12px;white-space:pre-line">'+esc(micReport())+'</div></div>'}
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='micsel'){S.settings.micId=e.target.value;save();const M=U.mic;if(M&&M.running){micStop();micStart()}}});
 function tickClock(){const tm=new Intl.DateTimeFormat('en-US',{timeZone:RZ,hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date()).split(' ');const a=$('#clk');if(a){a.textContent=tm[0];$('#clkap').textContent=tm[1];const h=+rp().hour;$('#greet').textContent=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening'}}
 
 /* ---------- background / theme ---------- */
@@ -681,6 +730,7 @@ function sel(id,opts,val,lab){return '<select id="'+id+'">'+opts.map(o=>'<option
 const F=(l,h)=>'<label class="fld">'+l+h+'</label>';
 function modalHTML(){const m=U.modal;if(!m)return '';
  if(m.kind==='sync')return syncModalHTML();
+ if(m.kind==='mic')return micModalHTML();
  if(m.kind==='archive'){return '<div id="ov" data-a="modalx"></div><div class="modal" role="dialog" aria-label="Chat archive"><div class="hd"><h2>All chats</h2><button class="ib" data-a="modalx" aria-label="Close">✕</button></div>'+(S.chats.length?S.chats.map(r=>'<button class="li" data-a="resume" data-id="'+r.id+'"><span class="tx"><b>'+esc(r.title)+'</b><small>'+r.type+' · '+ago(r.updated)+' · '+r.messages.length+' messages</small></span></button>').join(''):'<div class="empty">No archived chats yet.</div>')+'</div>'}
  if(m.kind==='ideas'){const a=S.ideas.concat(S.notes);return '<div id="ov" data-a="modalx"></div><div class="modal" role="dialog" aria-label="Ideas and notes"><div class="hd"><h2>Ideas &amp; Notes</h2><button class="ib" data-a="modalx" aria-label="Close">✕</button></div>'+(a.length?a.sort((x,y)=>y.updated-x.updated).map(i=>liItem(S.ideas.includes(i)?'ideas':'notes',i,(S.ideas.includes(i)?'Idea · '+i.stage:'Note')+' · '+ago(i.updated))).join(''):'<div class="empty">No ideas or notes yet. Pick “Idea” in the chat bar.</div>')+'</div>'}
  const [c,id]=m.k.split(':'),it=find(c,id);if(!it)return '';let h='';
@@ -719,7 +769,7 @@ function settingsHTML(){const s=S.settings,n=s.notif;
  '<h3>CONNECTIONS</h3><div class="sw"><span>Notion<small>'+esc(notionStatus())+'</small></span><button class="btn" data-a="nsync">Sync to Notion</button></div>'+
  '<div class="sw"><span>Google Calendar<small>'+esc(gcStatus())+'</small></span><button role="switch" aria-checked="'+n.gcal+'" aria-label="Google Calendar" class="'+(n.gcal?'on':'')+'" data-a="gcal"><i></i></button></div>'+(n.gcal?'<div class="opts" style="margin-bottom:6px"><button data-a="gcsync">Refresh events</button></div>':'')+
  '<div class="hint" style="margin:6px 0 0">'+(window.claude?'Atlas chat uses your Claude plan (no API key) and counts against Settings → Usage. Only “Auto” messages use it; picking a type files directly and costs nothing.':'Offline copy: Calendar, Notion and Atlas AI only work in the claude.ai version. Everything else works here.')+'</div>'+
- (location.hostname==='localhost'?widgetsPanel()+updatesPanel():'')+calExportPanel()+aiKeyPanel()+'<h3>YOUR DATA</h3><div class="opts"><button data-a="export">Export JSON backup</button><button data-a="importpick">Import backup…</button></div><input type="file" id="imp" accept="application/json,.json" style="display:none">'+
+ (location.hostname==='localhost'?widgetsPanel()+updatesPanel():'')+calExportPanel()+aiKeyPanel()+langPanel()+micPanel()+'<h3>YOUR DATA</h3><div class="opts"><button data-a="export">Export JSON backup</button><button data-a="importpick">Import backup…</button></div><input type="file" id="imp" accept="application/json,.json" style="display:none">'+
  (U.importPending?'<div class="empty" style="margin-top:10px">Replace ALL current data with this backup ('+U.importPending.tasks.length+' tasks, '+U.importPending.goals.length+' goals)?<div style="display:flex;gap:8px;margin-top:8px"><button class="btn dng" data-a="importyes">Yes, replace</button><button class="btn" data-a="importno">No</button></div></div>':'')+
  '<div class="hint" style="margin-top:10px">Data lives in this browser (and a private backup copy in your Claude account). Export regularly.</div></div>'}
 
@@ -765,6 +815,13 @@ mopen(d){U.meet=d.id;engFetch();renderMain();window.scrollTo(0,0)},
 mback(){U.meet='list';renderMain()},
 msys(){U.recSys=!U.recSys;renderMain()},
 mclean(){U.recClean=!U.recClean;renderMain()},
+micopen(){U.settings=false;renderNav();U.mic=U.mic||{};U.modal={kind:'mic'};renderPanels();micRefresh()},
+micx(){micStop();U.modal=null;renderPanels()},
+micstart(){micStart()},
+micstop(){micStop();renderPanels()},
+micdevs(){micRefresh()},
+async miccopy(){try{await navigator.clipboard.writeText(micReport());toast('Report copied. Paste it to me.','Microphone')}catch(_){toast('Could not copy here. Select the report text and copy it.','Microphone')}},
+mlang(d){S.settings.lang=d.v;save();renderMain();if(U.settings)renderPanels()},
 voice(){voiceToggle()},
 mrec(){recStart()},
 mstop(){recStop()},
@@ -798,7 +855,7 @@ menux(){U.menu=null;U.confirm=false;renderMain()},
 ask(){U.confirm=true;renderMain()},
 do(d){const [c,id]=d.k.split(':'),it=find(c,id);if(it){if(c==='goals')it.status='Dropped';else if(c==='projects')it.status='Archived';else if(c==='habits')it.removed=true;touch(it);save()}U.menu=null;U.confirm=false;renderMain()},
 open(d){const k=d.k;U.menu=null;U.confirm=false;U.modal={k,confirm:false};renderMain();renderPanels()},
-modalx(){if(U.modal&&U.modal.kind==='sync'&&U.modal.st==='writing')return;U.modal=null;renderPanels()},
+modalx(){if(U.modal&&U.modal.kind==='sync'&&U.modal.st==='writing')return;micStop();U.modal=null;renderPanels()},
 msave(){saveModal()},
 mcancel(){U.modal.confirm=true;renderPanels()},
 mcancelno(){U.modal.confirm=false;renderPanels()},
@@ -838,7 +895,7 @@ document.addEventListener('change',e=>{
  if(e.target.id==='photo'&&e.target.files[0]){const fr=new FileReader();fr.onload=()=>{U.bgUrl=fr.result;applyLook();idb('w',fr.result).catch(()=>toast('Photo shown, but could not be saved for next time.','Background'))};fr.readAsDataURL(e.target.files[0])}
  if(e.target.id==='imp'&&e.target.files[0]){const fr=new FileReader();fr.onload=()=>{try{const o=JSON.parse(fr.result);if(!o||!Array.isArray(o.tasks)||!Array.isArray(o.goals)||!o.settings)throw 0;['projects','habits','ideas','notes','followups','chats'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[]});U.importPending=o;renderPanels()}catch(_){toast('That file is not an Atlas backup.','Import')}};fr.readAsText(e.target.files[0])}});
 document.addEventListener('keydown',e=>{
- if(e.key==='Escape'){if(U.modal){if(!(U.modal.kind==='sync'&&U.modal.st==='writing')){U.modal=null;renderPanels()}}else if(U.settings){A.settings()}else if(U.typeMenu){U.typeMenu=false;updateBar()}else if(U.chatOpen)closeChat();else if(U.proj||U.day||U.meet){U.proj=null;U.day=null;U.meet=null;renderMain()}return}
+ if(e.key==='Escape'){if(U.modal){if(!(U.modal.kind==='sync'&&U.modal.st==='writing')){micStop();U.modal=null;renderPanels()}}else if(U.settings){A.settings()}else if(U.typeMenu){U.typeMenu=false;updateBar()}else if(U.chatOpen)closeChat();else if(U.proj||U.day||U.meet){U.proj=null;U.day=null;U.meet=null;renderMain()}return}
  if(e.key==='Enter'&&e.target.id==='msg'){e.preventDefault();send()}if(e.key==='Enter'&&e.target.id==='pt_title'){e.preventDefault();A.projadd()}});
 $('#msg').addEventListener('focus',()=>{if(!U.chatOpen)openChat()});
 
