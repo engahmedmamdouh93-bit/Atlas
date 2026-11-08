@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="atlas-version" content="30">
+<meta name="atlas-version" content="32">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-52 -52 104 104'%3E%3Crect x='-52' y='-52' width='104' height='104' rx='22' fill='%230B0A1A' stroke='%232A2550' stroke-width='1'/%3E%3Cpath d='M-28 30 L0 -32 L28 30' fill='none' stroke='%23A78BFA' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-15 12 l5 -9 l5 18 l5 -18 l5 18 l5 -18 l5 9' fill='none' stroke='%23FFB25B' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Atlas — Home</title>
@@ -193,6 +193,7 @@ body.widget [data-a="add"]{display:none}
   <span style="position:relative"><button class="bb" id="typeBtn" aria-haspopup="true" aria-expanded="false" data-a="typemenu"></button></span>
  <input id="msg" type="text" placeholder="Ask Atlas anything…" aria-label="Message Atlas" autocomplete="off">
  <button class="bb" id="voiceBtn" aria-label="Dictate with your voice" title="Press, speak, press again" data-a="voice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Voice</button>
+ <button class="bb" id="askBtn" aria-label="Send this to Claude" title="Opens Claude with your request filled in (uses your Claude plan)" data-a="askbar">Claude ↗</button>
  <button class="send" aria-label="Send to Atlas" data-a="send"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-2-6z"/></svg></button>
 </div>
 <div id="panels"></div>
@@ -263,6 +264,96 @@ function ago(at){const m=Math.max(0,Math.round((Date.now()-at)/60000));if(m<1)re
 function weekDays(){const p=rp(),base=new Date(Date.UTC(+p.year,+p.month-1,+p.day));const dow=base.getUTCDay();return Array.from({length:7},(_,k)=>{const d=new Date(base.getTime()+(k-dow)*864e5);return d.toISOString().slice(0,10)})}
 
 /* ---------- create ---------- */
+/* ---------- Quick parse: Egyptian Arabic + English dates and times, no AI needed ---------- */
+const QP_B1='(?<![\\p{L}\\p{N}])',QP_B2='(?![\\p{L}\\p{N}])';
+const QP_WD=[['الاحد|sunday',0],['الاثنين|الاتنين|monday',1],['الثلاثاء|الثلاثا|التلات|tuesday',2],['الاربعاء|الاربعا|الاربع|wednesday',3],['الخميس|thursday',4],['الجمعه|الجمعا|friday',5],['السبت|saturday',6]];
+const QP_MO=[['يناير|january|jan',1],['فبراير|february|feb',2],['مارس|march|mar',3],['ابريل|april|apr',4],['مايو|may',5],['يونيو|june|jun',6],['يوليو|july|jul',7],['اغسطس|august|aug',8],['سبتمبر|september|sep',9],['اكتوبر|october|oct',10],['نوفمبر|november|nov',11],['ديسمبر|december|dec',12]];
+function qpNorm(x){return String(x||'').replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-1632)).replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-1776)).replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[\u064B-\u0652\u0640]/g,'ـ').replace(/[A-Z]/g,c=>c.toLowerCase())}
+function quickParse(raw,force){
+ const src=String(raw||'');let s=qpNorm(src);const used=new Array(s.length).fill(false);
+ const eat=re=>{const m=re.exec(s);if(!m)return null;for(let i=m.index;i<m.index+m[0].length;i++){used[i]=true}s=s.slice(0,m.index)+' '.repeat(m[0].length)+s.slice(m.index+m[0].length);return m};
+ const today=todayStr(),twd=new Date(Date.UTC(+today.slice(0,4),+today.slice(5,7)-1,+today.slice(8,10))).getUTCDay();
+ let date='',m;
+ /* date */
+ if(eat(new RegExp(QP_B1+'(?:بعد\\s+(?:بكره|بكرا|غد|غدا)|day\\s+after\\s+tomorrow)'+QP_B2,'u')))date=shiftDay(today,2);
+ else if(eat(new RegExp(QP_B1+'(?:بكره|بكرا|غدا|غد|tomorrow)'+QP_B2,'u')))date=shiftDay(today,1);
+ else if(eat(new RegExp(QP_B1+'(?:النهارده|انهارده|النهارد|اليوم|today)'+QP_B2,'u')))date=today;
+ if(!date){
+  m=eat(new RegExp(QP_B1+'(\\d{1,2})\\s*/\\s*(\\d{1,2})(?:\\s*/\\s*(\\d{2,4}))?'+QP_B2,'u'));
+  let dd=0,mm=0,yy=0;
+  if(m){dd=+m[1];mm=+m[2];yy=m[3]?(+m[3]<100?2000+ +m[3]:+m[3]):0;if(mm>12&&dd<=12){const t=dd;dd=mm;mm=t}}
+  else{for(const [names,num] of QP_MO){m=eat(new RegExp(QP_B1+'(?:(\\d{1,2})\\s*(?:من\\s+|of\\s+)?(?:'+names+')|(?:'+names+')\\s+(\\d{1,2}))'+QP_B2,'u'));if(m){dd=+(m[1]||m[2]);mm=num;break}}}
+  if(dd>=1&&dd<=31&&mm>=1&&mm<=12){let y=yy||+today.slice(0,4);let cand=y+'-'+p2(mm)+'-'+p2(dd);if(!yy&&cand<today)cand=(y+1)+'-'+p2(mm)+'-'+p2(dd);const chk=new Date(Date.UTC(+cand.slice(0,4),mm-1,dd));if(chk.getUTCMonth()===mm-1&&chk.getUTCDate()===dd)date=cand}
+ }
+ if(!date){
+  for(const [names,wd] of QP_WD){
+   const ar=new RegExp(QP_B1+'(?:يوم\\s+)?(?:'+names.split('|').filter(n=>n.startsWith('ال')).join('|')+')(?:\\s+(?:الجاي|الجايه|القادم|القادمه|الجاى))?'+QP_B2,'u');
+   const en=new RegExp(QP_B1+'(?:next\\s+|on\\s+)?(?:'+names.split('|').filter(n=>!n.startsWith('ال')).join('|')+')'+QP_B2,'u');
+   if(eat(ar)||eat(en)){let delta=(wd-twd+7)%7;if(delta===0)delta=7;date=shiftDay(today,delta);break}
+  }
+ }
+ /* time */
+ let hh=null,mi=0,per=null,adj=0;
+ m=eat(new RegExp(QP_B1+'(\\d{1,2})(?::(\\d{2}))?\\s*(am|pm|a\\.m\\.|p\\.m\\.|ص|م)'+QP_B2,'u'));
+ if(m){hh=+m[1];mi=m[2]?+m[2]:0;per=/^(am|a\.m\.|ص)$/.test(m[3])?'AM':'PM'}
+ if(hh==null){
+  m=eat(new RegExp(QP_B1+'(?:الساعه|ساعه|at|@)\\s*(\\d{1,2})(?:\\s*[:.]\\s*(\\d{2}))?(?:\\s*(ونص|و\\s*نص|وربع|و\\s*ربع|وتلت|و\\s*تلت|الا\\s*ربع|الا\\s*تلت))?'+QP_B2,'u'));
+  if(m){hh=+m[1];mi=m[2]?+m[2]:0;const w=(m[3]||'').replace(/\s+/g,'');if(w==='ونص')mi=30;else if(w==='وربع')mi=15;else if(w==='وتلت')mi=20;else if(w==='الاربع'){mi=45;adj=-1}else if(w==='الاتلت'){mi=40;adj=-1}}
+ }
+ if(hh==null){m=eat(new RegExp(QP_B1+'(\\d{1,2}):(\\d{2})'+QP_B2,'u'));if(m){hh=+m[1];mi=+m[2]}}
+ /* day-period words */
+ let night=false;
+ if(eat(new RegExp(QP_B1+'بعد\\s+(?:ال)?[ضظ]هر'+QP_B2,'u')))per=per||'PM';
+ else if(eat(new RegExp(QP_B1+'(?:ال)?[ضظ]هرا?'+QP_B2,'u')))per=per||'NOON';
+ if(eat(new RegExp(QP_B1+'(?:مساء|مساءا|العصر|عصرا|المغرب|بالليل|الليل|ليلا|tonight|evening|afternoon)'+QP_B2,'u'))){per=per||'PM';night=true}
+ if(eat(new RegExp(QP_B1+'(?:صباحا|الصبح|صبح|فجرا|الفجر|morning)'+QP_B2,'u')))per=per||'AM';
+ let amb=false,h12=hh;
+ if(hh!=null){
+  if(hh<0||hh>24||mi>59){hh=null}
+  else{
+   if(adj){hh=hh+adj;if(hh<=0)hh=12}
+   h12=hh;
+   if(hh>=13||hh===0){/* 24h as typed */}
+   else{
+    const p=per||force||null;
+    if(p==='AM')hh=hh===12?0:hh;
+    else if(p==='PM'){if(hh===12&&night){hh=0;if(date)date=shiftDay(date,1)}else hh=hh===12?12:hh+12}
+    else if(p==='NOON')hh=(hh===11||hh===12)?hh:hh+12;
+    else amb=true;
+   }
+  }
+ }
+ if(hh===24)hh=0;
+ /* title */
+ let t0='';for(let i=0;i<src.length;i++)if(!used[i])t0+=src[i];
+ const clean=x=>x.replace(/[\u064B-\u0652\u0640]/g,'').replace(/\s+/g,' ').trim();
+ t0=clean(t0);
+ for(let k=0;k<4;k++){
+  const tn=qpNorm(t0);
+  const lead=new RegExp('^[\\s,،.:؛-]*(?:(?:ضيف|اضف|اضيف|سجل|حط|ذكرني|فكرني|عايز|عاوز|لو سمحت|من فضلك|please|add|create|schedule|remind\\s+me\\s+to|remind\\s+me|set|new|make|تاسك|task|مهمه|reminder)(?:لي|لي|ني|ه)?'+QP_B2+'[\\s,،.:؛-]*)+','u').exec(tn);
+  const join=/^[\s,،.:؛-]*(?:في|ف|على|عند|ل|at|on|in|for|to|my)(?![\p{L}\p{N}])[\s,،.:؛-]*/u.exec(tn);
+  if(lead&&lead[0].length)t0=t0.slice(lead[0].length);
+  else if(join&&join[0].length&&t0.length>join[0].length)t0=t0.slice(join[0].length);
+  else break;
+ }
+ const tail=/[\s,،.:؛-]*(?:في|ف|على|عند|at|on|in|for|to|ال|يوم|الساعه|ساعه)[\s,،.:؛-]*$/u.exec(qpNorm(t0));
+ if(tail&&tail[0].length&&t0.length>tail[0].length)t0=t0.slice(0,t0.length-tail[0].length);
+ t0=t0.replace(/^[\s,،.:؛-]+|[\s,،.:؛-]+$/g,'');
+ return{found:!!(date||hh!=null||amb),date,hh,mm:mi,amb,h12,title:t0||src.trim()};
+}
+function gcalUrl(t){const d=t.due.slice(0,10),tm=timeOf(t.due);let dates;if(tm){dates=d.replace(/-/g,'')+'T'+tm.replace(':','')+'00/'+endOf(t.due).replace(/[-:]/g,'')}else dates=d.replace(/-/g,'')+'/'+shiftDay(d,1).replace(/-/g,'');
+ return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(t.title)+'&dates='+dates+'&ctz=Asia%2FRiyadh&details='+encodeURIComponent('Created by Atlas')}
+function finishTask(c,q,raw){let date=q.date,note='';
+ if(q.hh!=null&&!date){const p=rp(),nowM=(+p.hour)*60+(+p.minute);date=(q.hh*60+q.mm>nowM)?todayStr():shiftDay(todayStr(),1);note=' ('+(date===todayStr()?'today':'tomorrow')+' assumed)'}
+ const due=date?(date+(q.hh!=null?'T'+p2(q.hh)+':'+p2(q.mm):'')):'';
+ const old=U.presetDue;U.presetDue=due;const it=createItem('Task',q.title);U.presetDue=old;
+ const tm=timeOf(due);
+ c.messages.push({who:'atlas',text:'Added task: “'+q.title+'” — '+(due?'Scheduled '+fmtDate(due)+(tm?' '+tm:'')+note+'.'+(tm?'':' No time yet: add one to put it on Google Calendar.'):'Inbox, no date. Tap it to set a date.'),link:due?gcalUrl(it):''});
+ return it}
+function localTask(c,text){const q=quickParse(text);if(!q.found)return false;
+ if(q.amb){c.messages.push({who:'atlas',text:'“'+q.title+'” — '+(q.date?fmtDate(q.date)+', ':'')+q.h12+':'+p2(q.mm)+'. AM or PM? صباحاً ولا مساءً؟',chips:['ampm:am','ampm:pm'],raw:text});return true}
+ finishTask(c,q,text);return true}
+
 function createItem(type,text){const t=Date.now(),coll=COLL[type];let it;
  if(type==='Task')it={title:text,status:U.presetDue?'Scheduled':'Inbox',due:U.presetDue||'',priority:'NN',project:'',postponed:0,notes:''};
  else if(type==='Goal')it={title:text,area:'',deadline:'',status:'Active',progress:null,notes:'',color:'#B9A6FF'};
@@ -481,7 +572,7 @@ function atlasContext(){const td=todayStr(),wd=new Intl.DateTimeFormat('en-US',{
 const ATLAS_RULES='You are Atlas, Ahmed\'s personal admin agent inside his app. Direct, short, no flattery, no filler. Loop: understand, classify (TASK, PROJECT, IDEA, GOAL, FOLLOW-UP, EVENT, NOTE, QUESTION; one message can be several), check app data, then create/update or ask, then confirm. Use search_items before creating; if it may already exist, do not create a duplicate (say so, or update). NEVER invent dates, times, people, amounts or priorities: if a date or time is missing and it changes the action, ask ONE short question. Resolve relative dates ("Thursday", "next week") to absolute YYYY-MM-DD using today\'s date and show them like "Thu Oct 22". Confirm in one line ("Added: Renew license — Oct 20.") and ONLY what a tool result shows succeeded; if a tool fails or returns created:false, say so. You cannot delete, cancel, archive or drop anything, and you cannot sync to Notion: tell him to use the item menus or the Settings button. Google Calendar changes need his Yes on a card the app shows; just say the card will appear. Add at most ONE proactive line at the end (overdue, postponed 3+, likely duplicate) and only if clearly useful. If the message is only a question about his data, answer from the tools, read-only.';
 function sampleErr(e){const c=e&&e.code,m=(e&&e.message)||'';if(c==='not_granted'||c==='consent_declined')return 'you did not allow Claude access for this page';if(/limit|usage|quota/i.test(c+' '+m))return 'your Claude usage limit is reached';return m.length>140?m.slice(0,137)+'…':(m||'the request failed')}
 async function atlasReply(c,text){const s=await getSample();
- if(!s){c.messages.push({who:'atlas',text:'Atlas AI is not available in this view. I can still file it — pick a type:',chips:['Task','Idea','Note'],raw:text});saveChat();renderChat();return}
+ if(!s){if(localTask(c,text)){saveChat();renderChat();renderMain();return}c.messages.push({who:'atlas',text:'Atlas AI is not available in this view. File it yourself, or send it to Claude:',chips:['Task','Idea','Note','Claude'],raw:text});saveChat();renderChat();return}
  const msg={who:'atlas',text:'…'};c.messages.push(msg);renderChat();const ran=[];
  const hist=c.messages.slice(0,-2).slice(-6).map(m=>(m.who==='me'?'Ahmed: ':'Atlas: ')+m.text).join('\n');
  const input=ATLAS_RULES+'\n\n'+atlasContext()+(hist?'\n\nRecent conversation:\n'+hist:'')+'\n\nAhmed: '+text;
@@ -690,6 +781,16 @@ function micModalHTML(){const M=U.mic||{},devs=M.devices||[];
  (M.err?'<div class="empty" style="border-color:var(--orange);margin-top:10px">'+esc(M.err)+'</div>':'')+
  '<div class="opts" style="margin-top:12px">'+(M.running?'<button class="on" data-a="micstop">■ Stop test</button>':'<button data-a="micstart">▶ Start test</button>')+'<button data-a="micdevs">Refresh devices</button><button data-a="miccopy">Copy report</button></div><div class="hint" style="margin-top:12px;white-space:pre-line">'+esc(micReport())+'</div></div>'}
 document.addEventListener('change',e=>{if(e.target&&e.target.id==='micsel'){S.settings.micId=e.target.value;save();const M=U.mic;if(M&&M.running){micStop();micStart()}}});
+/* ---------- Ask Claude: hand the request to Claude (your Claude plan, no API key) ---------- */
+function claudePrompt(text){const td=todayStr(),wd=new Intl.DateTimeFormat('en-US',{timeZone:RZ,weekday:'long'}).format(new Date());
+ const open=S.tasks.filter(isOpen).slice(0,12).map(t=>'- '+t.title+(t.due?' ('+t.due.replace('T',' ')+')':'')).join('\n')||'(none)';
+ return 'Act as Atlas, my personal admin agent. Today is '+wd+' '+td+' (Asia/Riyadh). Use my Google Calendar connector. Never invent a date or time: if one is missing, ask one short question. Resolve relative dates to exact dates. Before creating any event, show a short confirmation (title, date, time) and wait for my yes. Add a popup reminder '+S.settings.notif.lead+' minutes before. Reply in my language (Egyptian Arabic if I write Arabic).\n\nMy open Atlas tasks:\n'+open+'\n\nMy request:\n'+text}
+function askClaude(text){text=(text||'').trim();if(!text){toast('Type or say your request first, then press Claude ↗.','Ask Claude');return}
+ const p=claudePrompt(text),base=((S.settings&&S.settings.claudeUrl)||'').trim(),url=/^https:\/\/claude\.ai\//.test(base)?base:('https://claude.ai/new?q='+encodeURIComponent(p));
+ try{window.open(url,'_blank')}catch(_){try{location.href=url}catch(__){}}
+ let ok=false;try{navigator.clipboard.writeText(p).then(()=>{},()=>{});ok=true}catch(_){}
+ toast((ok?'Your request is copied. ':'')+'Claude is opening. If its message box is empty, paste it and send.','Ask Claude')}
+function claudePanel(){return '<h3>ASK CLAUDE</h3><label class="fld">Open this Claude link (optional)<input id="claudeurl" value="'+esc((S.settings&&S.settings.claudeUrl)||'')+'" placeholder="https://claude.ai/project/…"></label><div class="opts"><button data-a="claudesave">Save</button></div><div class="hint" style="margin-top:6px">Leave it empty to open a new Claude chat with your request already filled in. Or paste your Admin Agent project link to open that project; your request is copied so you can paste it there.</div>'}
 function tickClock(){const tm=new Intl.DateTimeFormat('en-US',{timeZone:RZ,hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date()).split(' ');const a=$('#clk');if(a){a.textContent=tm[0];$('#clkap').textContent=tm[1];const h=+rp().hour;$('#greet').textContent=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening'}}
 
 /* ---------- background / theme ---------- */
@@ -714,14 +815,14 @@ function renderChat(){const L=$('#chatlayer');if(!U.chatOpen){L.innerHTML='';ret
  const c=curChat();const rc=S.chats.filter(x=>!U.chat||x.id!==U.chat.id).slice(0,3);
  L.innerHTML='<button id="dim" aria-label="Close chat and return to the dashboard" data-a="chatx" style="background:rgba(6,5,16,'+(.6*(1-S.settings.chatTransp/70)).toFixed(2)+');backdrop-filter:blur('+Math.max(0,Math.round(4*(1-S.settings.chatTransp/70)))+'px)"></button>'+
  '<section id="pop" aria-label="Atlas chat"><div class="ph"><b>'+esc(c.title)+'</b><span>Click outside to close · saved in the app</span></div>'+
- (c.messages.length?c.messages.map((m,mi)=>'<div class="m '+m.who+'"><div>'+esc(m.text)+(m.chips&&!m.done?'<div class="chips">'+m.chips.map(t=>'<button data-a="chip" data-mi="'+mi+'" data-t="'+t+'">Save as '+t+'</button>').join('')+'</div>':'')+'</div></div>').join(''):'<div style="color:#A9A3C9;font-size:14px">Ask a question, or pick a type on the left (Task, Idea, Goal…) and Atlas files it for you.</div>')+'</section>'+
+ (c.messages.length?c.messages.map((m,mi)=>'<div class="m '+m.who+'"><div>'+esc(m.text)+(m.chips&&!m.done?'<div class="chips">'+m.chips.map(t=>t==='Claude'?'<button data-a="askclaude" data-mi="'+mi+'">Ask Claude ↗</button>':t.indexOf('ampm:')===0?'<button data-a="ampm" data-mi="'+mi+'" data-p="'+t.slice(5)+'">'+(t==='ampm:am'?'صباحاً · AM':'مساءً · PM')+'</button>':'<button data-a="chip" data-mi="'+mi+'" data-t="'+t+'">Save as '+t+'</button>').join('')+'</div>':'')+(m.link?'<div class="chips"><a class="btn" style="text-decoration:none;display:inline-flex;align-items:center" target="_blank" rel="noopener" href="'+esc(m.link)+'">Add to Google Calendar ↗</a></div>':'')+'</div></div>').join(''):'<div style="color:#A9A3C9;font-size:14px">Ask a question, or pick a type on the left (Task, Idea, Goal…) and Atlas files it for you.</div>')+'</section>'+
  '<div id="rc"><span class="l">RECENT CHATS</span>'+rc.map(r=>'<button class="r" data-a="resume" data-id="'+r.id+'"><b>'+esc(r.title)+'</b><small>'+r.type+' · '+ago(r.updated)+'</small></button>').join('')+'<a href="#" data-a="archive" style="font-size:12.5px;margin-left:auto">All chats (archive)</a></div>';
  const p=$('#pop');if(p)p.scrollTop=p.scrollHeight}
 function openChat(type){if(type){U.type=type}if(!U.chatOpen){U.chatOpen=true}updateBar();renderChat();$('#msg').focus()}
 function closeChat(){saveChat();U.chatOpen=false;U.chat=null;U.typeMenu=false;U.presetDue=null;updateBar();renderChat();$('#msg').blur()}
 function send(){const inp=$('#msg'),text=inp.value.trim();if(!text)return;inp.value='';const c=curChat();U.chatOpen=true;if(c.fresh||c.title==='New chat')c.title=text.length>48?text.slice(0,45)+'…':text;c.type=U.type;c.messages.push({who:'me',text});
  if(U.type==='Auto'){atlasReply(c,text)}
- else{const it=createItem(U.type,text);needTimeNote(it);c.messages.push({who:'atlas',text:reply(U.type,text,it)});renderMain()}
+ else if(U.type==='Task'&&localTask(c,text)){renderMain()} else{const it=createItem(U.type,text);needTimeNote(it);c.messages.push({who:'atlas',text:reply(U.type,text,it)});renderMain()}
  saveChat();updateBar();renderChat()}
 
 /* ---------- modal (open item) ---------- */
@@ -769,7 +870,7 @@ function settingsHTML(){const s=S.settings,n=s.notif;
  '<h3>CONNECTIONS</h3><div class="sw"><span>Notion<small>'+esc(notionStatus())+'</small></span><button class="btn" data-a="nsync">Sync to Notion</button></div>'+
  '<div class="sw"><span>Google Calendar<small>'+esc(gcStatus())+'</small></span><button role="switch" aria-checked="'+n.gcal+'" aria-label="Google Calendar" class="'+(n.gcal?'on':'')+'" data-a="gcal"><i></i></button></div>'+(n.gcal?'<div class="opts" style="margin-bottom:6px"><button data-a="gcsync">Refresh events</button></div>':'')+
  '<div class="hint" style="margin:6px 0 0">'+(window.claude?'Atlas chat uses your Claude plan (no API key) and counts against Settings → Usage. Only “Auto” messages use it; picking a type files directly and costs nothing.':'Offline copy: Calendar, Notion and Atlas AI only work in the claude.ai version. Everything else works here.')+'</div>'+
- (location.hostname==='localhost'?widgetsPanel()+updatesPanel():'')+calExportPanel()+aiKeyPanel()+langPanel()+micPanel()+'<h3>YOUR DATA</h3><div class="opts"><button data-a="export">Export JSON backup</button><button data-a="importpick">Import backup…</button></div><input type="file" id="imp" accept="application/json,.json" style="display:none">'+
+ (location.hostname==='localhost'?widgetsPanel()+updatesPanel():'')+calExportPanel()+aiKeyPanel()+langPanel()+micPanel()+claudePanel()+'<h3>YOUR DATA</h3><div class="opts"><button data-a="export">Export JSON backup</button><button data-a="importpick">Import backup…</button></div><input type="file" id="imp" accept="application/json,.json" style="display:none">'+
  (U.importPending?'<div class="empty" style="margin-top:10px">Replace ALL current data with this backup ('+U.importPending.tasks.length+' tasks, '+U.importPending.goals.length+' goals)?<div style="display:flex;gap:8px;margin-top:8px"><button class="btn dng" data-a="importyes">Yes, replace</button><button class="btn" data-a="importno">No</button></div></div>':'')+
  '<div class="hint" style="margin-top:10px">Data lives in this browser (and a private backup copy in your Claude account). Export regularly.</div></div>'}
 
@@ -815,6 +916,9 @@ mopen(d){U.meet=d.id;engFetch();renderMain();window.scrollTo(0,0)},
 mback(){U.meet='list';renderMain()},
 msys(){U.recSys=!U.recSys;renderMain()},
 mclean(){U.recClean=!U.recClean;renderMain()},
+askbar(){const inp=document.getElementById('msg');let tx=(inp&&inp.value||'').trim();if(!tx&&U.chat){const me=U.chat.messages.filter(m=>m.who==='me').pop();if(me)tx=me.text}askClaude(tx)},
+askclaude(d){const c=U.chat,m=c&&c.messages[+d.mi];askClaude(m&&m.raw||'')},
+claudesave(){const el=document.getElementById('claudeurl'),v=(el&&el.value||'').trim();if(v&&!/^https:\/\/claude\.ai\//.test(v)){toast('The link must start with https://claude.ai/','Ask Claude');return}S.settings.claudeUrl=v;save();toast(v?'Saved. Ask Claude will open that link.':'Saved. Ask Claude will open a new chat.','Ask Claude');renderPanels()},
 micopen(){U.settings=false;renderNav();U.mic=U.mic||{};U.modal={kind:'mic'};renderPanels();micRefresh()},
 micx(){micStop();U.modal=null;renderPanels()},
 micstart(){micStart()},
@@ -866,7 +970,8 @@ typemenu(){U.typeMenu=!U.typeMenu;updateBar()},
 pickt(d){U.type=d.v;U.typeMenu=false;updateBar();$('#msg').focus()},
 send(){if(!U.chatOpen&&!$('#msg').value.trim()){openChat();return}send()},
 chatx(){closeChat()},
-chip(d){const c=curChat(),m=c.messages[+d.mi];if(!m)return;m.done=true;const it=createItem(d.t,m.raw);c.messages.push({who:'atlas',text:reply(d.t,m.raw,it)});saveChat();renderMain();renderChat()},
+ampm(d){const c=curChat(),m=c.messages[+d.mi];if(!m||m.done)return;m.done=true;finishTask(c,quickParse(m.raw,d.p==='am'?'AM':'PM'),m.raw);saveChat();renderMain();renderChat()},
+chip(d){const c=curChat(),m=c.messages[+d.mi];if(!m)return;m.done=true;if(d.t==='Task'&&localTask(c,m.raw)){saveChat();renderMain();renderChat();return}const it=createItem(d.t,m.raw);c.messages.push({who:'atlas',text:reply(d.t,m.raw,it)});saveChat();renderMain();renderChat()},
 resume(d){const r=S.chats.find(x=>x.id===d.id);if(!r)return;saveChat();U.chat=r;U.modal=null;U.chatOpen=true;renderPanels();updateBar();renderChat()},
 archive(){U.modal={kind:'archive'};renderPanels()},
 toastx(){$('#toastbox').innerHTML=''},
